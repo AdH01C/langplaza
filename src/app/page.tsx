@@ -5,11 +5,12 @@ import { useRef, useState } from 'react';
 import { useSpring, animated, config, useInView } from 'react-spring';
 import Header from './components/Header';
 
-const NumberCounter = ({ targetNumber }) => {
-  const [ref, inView] = useInView({
-    triggerOnce: true, // Trigger the animation only once
-    threshold: 0.1     // Percentage of the element that's visible
-  });
+type NumberCounterProps = {
+  targetNumber: number;
+}
+
+const NumberCounter = ({ targetNumber }: NumberCounterProps) => {
+  const [ref, inView] = useInView();
 
   const [started, setStarted] = useState(false);
 
@@ -17,12 +18,12 @@ const NumberCounter = ({ targetNumber }) => {
     number: inView ? targetNumber : 0,
     from: { number: 0 },
     onStart: () => setStarted(true),
-    config: { duration: 1000 } // Adjust duration as needed
+    config: { duration: 1000 }
   });
 
   return (
     <animated.div ref={ref}>
-      {started && props.number.interpolate(number => Math.floor(number).toLocaleString())}
+      {started && props.number.interpolate((number: number) => Math.floor(number).toLocaleString())}
     </animated.div>
   );
 };

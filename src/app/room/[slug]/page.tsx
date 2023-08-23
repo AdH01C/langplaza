@@ -27,9 +27,9 @@ export default function Room() {
 
   const [chatStarted, setChatStarted] = useState(false);
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<string[]>([]);
 
-  const handleEnterPress = (e) => {
+  const handleEnterPress = (e: { key: string; }) => {
     if (e.key === 'Enter') {
       // Your action here, for example:
       handleSendMessage();
@@ -54,6 +54,8 @@ export default function Room() {
       videoRef.current.srcObject = null;
     }
   }
+  
+
   
 
   const handleSendMessage = () => {
