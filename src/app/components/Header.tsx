@@ -4,30 +4,27 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function Header() {
-    // check if token exists
-    // if token exists, show logout button
-    // if token does not exist, show login button
+    const router = useRouter(); // Moved useRouter to top level
 
     const [loginToken, setLoginToken] = useState<string | null>(null);
 
     useEffect(() => {
-        // This code will only run on the client side
         if (localStorage.getItem('token') != "undefined")
             setLoginToken(localStorage.getItem('token'));
-    }, []); // The empty dependency array means this useEffect runs once when the component mounts
-
+    }, []);
 
     const handleLogout = async () => {
         try {
             await logoutUser();
             setLoginToken(null);
             localStorage.removeItem('token');
-            useRouter().push('/');
+            router.push('/'); // Using router object here
             
         } catch (error) {
             console.error('Error in handleLogout:', error);
         }
     };
+
 
     if (loginToken) {
         return (
