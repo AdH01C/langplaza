@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useRef, useState } from 'react';
 import { useSpring, animated, config, useInView } from 'react-spring';
 import Header from './components/Header';
+import FadeInFromLeft from './components/FadeInFromLeft';
 
 type NumberCounterProps = {
   targetNumber: number;
@@ -28,26 +29,6 @@ const NumberCounter = ({ targetNumber }: NumberCounterProps) => {
   );
 };
 
-type FadeInFromLeftProps = {
-  children: React.ReactNode;
-}
-
-const FadeInFromLeft = ({ children }: FadeInFromLeftProps) => {
-  const [ref, inView] = useInView()
-
-  const animation = useSpring({
-    opacity: inView ? 1 : 0,
-    transform: inView ? 'translateX(0)' : 'translateX(-50px)',
-    config: config.slow,
-  })
-
-  return (
-    <animated.div ref={ref} style={animation}>
-      {children}
-    </animated.div>
-  )
-}
-
 
 export default function Home() {
   return (
@@ -62,7 +43,7 @@ export default function Home() {
           <FadeInFromLeft>
             <div className="hidden sm:mb-8 sm:flex sm:justify-center">
               <div className="relative rounded-full px-3 py-1 text-sm leading-6 text-gray-600 ring-1 ring-gray-900/10 hover:ring-gray-900/20">
-                Announcing our partnership with MOE. <a href="#" className="font-semibold text-primary"><span className="absolute inset-0" aria-hidden="true"></span>Read more <span aria-hidden="true">&rarr;</span></a>
+                Announcing our partnership with MOE. <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" className="font-semibold text-primary"><span className="absolute inset-0" aria-hidden="true"></span>Read more <span aria-hidden="true">&rarr;</span></a>
               </div>
             </div>
           </FadeInFromLeft>
@@ -75,8 +56,8 @@ export default function Home() {
                 Dive into a world of languages, connect with tutors, and join our vibrant community.
               </p>
               <div className="mt-10 flex items-center justify-center gap-x-6">
-                <a href="#" className="rounded-md bg-primary px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Get started</a>
-                <a href="#" className="text-sm font-semibold leading-6 text-gray-900">Learn more <span aria-hidden="true">→</span></a>
+                <a href="/login" className="rounded-md bg-primary px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Get started</a>
+                <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" className="text-sm font-semibold leading-6 text-gray-900">Learn more <span aria-hidden="true">→</span></a>
               </div>
 
             </FadeInFromLeft>
