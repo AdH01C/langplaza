@@ -6,7 +6,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useSpring, animated, config, useInView } from 'react-spring';
 import Header from '../components/Header';
 import { verify } from 'crypto';
+import { startChat } from '../utils/room';
 
+
+const languages = ['Spanish', 'English', 'French', 'German', 'Chinese', 'Japanese', 'Russian', 'Italian']
 
 export default function Match() {
 
@@ -26,6 +29,7 @@ export default function Match() {
   const [chatStarted, setChatStarted] = useState(false);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<string[]>([]);
+  const [selectedLanguage, setSelectedLanguage] = useState('');
 
   const handleEnterPress = (e: { key: string; }) => {
     if (e.key === 'Enter') {
@@ -34,9 +38,19 @@ export default function Match() {
     }
   };
   
-  const handleStartChat = () => {
-    setChatStarted(true);
-    initializeWebcam();
+  const handleStartChat = async() => {
+    // Get the room lanuage
+    // join queue of the selected language
+    // selectedLanguage --> "French"
+    const token = localStorage.getItem("token")
+    let resp = await startChat(token, selectedLanguage)
+    const roomId = resp[0].updated_id
+    if (roomId && roomId !== "" ){
+      window.location.href = `./room/${roomId}`
+    }
+    
+    // setChatStarted(true);
+    // initializeWebcam();
     // You can add any initialization code for the chat here
 
     
@@ -70,6 +84,9 @@ export default function Match() {
     // This code will only run on the client side
     setLoginToken(localStorage.getItem('token'));
     console.log("loginToken: ", loginToken);
+    
+    // Set language by default
+    setSelectedLanguage(languages[0])
   }, []); // The empty dependency array means this useEffect runs once when the component mounts
 
   if (loginToken == null || loginToken == "undefined") {
@@ -90,6 +107,21 @@ export default function Match() {
           <div className="text-4xl font-bold text-center text-black mb-4">
             Get ready to start your chat!
           </div>
+          
+          <select
+            value={selectedLanguage}
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+            className="border rounded-md p-2 text-black"
+            >
+            {/* You can dynamically generate options based on available languages */}
+            {
+              languages.map((language, index) => (
+                <option key={index} value={language}>{language}</option>
+              ))
+            }
+          </select>
+          <br></br>
+
           {/* Button to start chat */}
           <button
             onClick={handleStartChat}
