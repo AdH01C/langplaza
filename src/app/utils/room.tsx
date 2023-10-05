@@ -8,8 +8,6 @@ import axios from 'axios';
 
 export const startChat = async (username: any, language: any) => {
   try {
-    console.log(username)
-    console.log(language)
     const response = await axios.post('http://127.0.0.1:3003/room/start', {
         "user": username,
         "language": language

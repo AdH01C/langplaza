@@ -44,7 +44,7 @@ export default function Match() {
     // selectedLanguage --> "French"
     const token = localStorage.getItem("token")
     let resp = await startChat(token, selectedLanguage)
-    const roomId = resp[0].updated_id
+    const roomId = resp.id
     if (roomId && roomId !== "" ){
       window.location.href = `./room/${roomId}`
     }
