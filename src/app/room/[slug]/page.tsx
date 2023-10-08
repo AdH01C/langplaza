@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import Header from '../../components/Header';
 // import { verify } from 'crypto';
-import { startChat } from '../../utils/room';
+import { startChat } from '../../utils/auth';
 
 
 export default function Room() {

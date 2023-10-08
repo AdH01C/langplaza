@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import Header from '../components/Header';
 import FadeInFromLeft from '../components/FadeInFromLeft';
-import { signUpUser } from '../utils/signup'; // Adjust the import path as needed
+import { signUpUser } from '../utils/auth'; // Adjust the import path as needed
 import { useRouter } from 'next/navigation';
 
 export default function SignUp() {

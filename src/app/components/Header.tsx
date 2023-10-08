@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { logoutUser } from '../utils/logout';
+import { logoutUser } from '../utils/auth';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
