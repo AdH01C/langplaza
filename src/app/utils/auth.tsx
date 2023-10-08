@@ -1,14 +1,24 @@
 import axios from 'axios';
+import { useEffect } from 'react';
 
-const token = localStorage.getItem('token');
-if (token) {
-  axios.defaults.headers.common['Authorization'] = token;
-}
-
+let token;
 const auth_url = 'http://127.0.0.1:30000';
 const room_url = 'http://127.0.0.1:3003';
 
+const setTokenOnClient = () => {
+  if (typeof window !== 'undefined') {
+    token = localStorage.getItem('token');
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = token;
+    }
+  }
+};
+
+setTokenOnClient();
+
 export const loginUser = async (email: FormDataEntryValue | null, password: FormDataEntryValue | null) => {
+  
+  
   try {
     // Send a POST request to your login endpoint with the user's credentials
     const response = await axios.post(auth_url + "/login", {
