@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 
 export default function SignUp() {
   const [hasFailedSignUp, setHasFailedSignUp] = useState(false);
+  const [error, setError] = useState(null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
@@ -20,23 +21,25 @@ export default function SignUp() {
     };
     try {
       const result = await signUpUser(user.email, user.username, user.password1, user.password2); // pass all 4 arguments
-      console.log('Sign-up successful:', result);
-      // Redirect or update the UI as needed after successful sign-up
-    } catch (error) {
+      router.push('/login');
+
+    } catch (error : any) {
       console.error('Error in handleSubmit:', error);
       setHasFailedSignUp(true);
+      setError(error.message);
     }
   };
 
   const [loginToken, setLoginToken] = useState<string | null>(null);
 
-
   useEffect(() => {
-    // This code will only run on the client side
-    if (localStorage.getItem('token') != "undefined")
-        setLoginToken(localStorage.getItem('token'));
-  }, []); // The empty dependency array means this useEffect runs once when the component mounts
-
+    setLoginToken(
+      localStorage.getItem('token') !== "undefined" 
+        ? localStorage.getItem('token') 
+        : null
+    );
+  }, []);
+  
   const router = useRouter();
   
   if (loginToken) {
@@ -144,7 +147,7 @@ export default function SignUp() {
 
       <div className={`${hasFailedSignUp ? 'flex' : 'hidden'} justify-center mt-4`}>
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-          <strong className="font-bold">Sign-up failed.</strong>
+          <strong className="font-bold">{error}.</strong>
           <span className="block sm:inline"> Please try again.</span>
         </div>
       </div>

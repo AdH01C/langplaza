@@ -9,12 +9,21 @@ export type Friend = {
 };
 
 type FriendsListProps = {
-  onInvite: (selectedFriends: Friend[], room: string) => void;
+  onInvite: (selectedFriend: Friend | null, room: string) => void;
+  selectedFriend: Friend | null;
+  setSelectedFriend: React.Dispatch<React.SetStateAction<Friend | null>>;
 };
 
-export const FriendsList: React.FC<FriendsListProps> = ({ onInvite }) => {
-  const [friends, setFriends] = useState<Friend[]>([]);
-  const [selectedFriends, setSelectedFriends] = useState<Friend[]>([]);
+export const FriendsList: React.FC<FriendsListProps> = ({ onInvite, selectedFriend, setSelectedFriend }) => {
+  const [friends, setFriends] = useState<Friend[]>(
+    [
+      { id: '1', name: 'John Doe' },
+      { id: '2', name: 'Jane Doe' },
+      { id: '3', name: 'John Smith' },
+      { id: '4', name: 'Jane Smith' },
+    ]
+  );
+  
   const [room, setRoom] = useState<string>('');
 
   useEffect(() => {
@@ -25,40 +34,60 @@ export const FriendsList: React.FC<FriendsListProps> = ({ onInvite }) => {
     //   .then(data => setFriends(data));
   }, []);
 
-  const handleSelectFriend = (friend: Friend) => {
-    setSelectedFriends(prev => [...prev, friend]);
-  };
-
-  const handleDeselectFriend = (friend: Friend) => {
-    setSelectedFriends(prev => prev.filter(f => f.id !== friend.id));
+  const handleSelectFriend = (friend: Friend | null) => {
+    if (selectedFriend === friend) {
+      setSelectedFriend(null); // Deselect friend if it's already selected
+    } else {
+      setSelectedFriend(friend); // Select the clicked friend
+    }
   };
 
   const handleInvite = () => {
-    onInvite(selectedFriends, room);
+    if (!selectedFriend) {
+      return; // Do nothing if no friend is selected
+    }
+    onInvite(selectedFriend, room);
   };
 
   return (
-    <div>
-      <h2>Select Friends</h2>
-      <ul>
+    <div className="flex flex-col gap-4 text-black">
+      <a className='text-3xl'>Select Friends</a>
+      <div className="flex flex-col gap-4 w-full"> 
         {friends.map(friend => (
-          <li key={friend.id}>
+          <div 
+            key={friend.id}
+            onClick={() => handleSelectFriend(friend)}
+            className={
+              `p-4 rounded-lg shadow-sm cursor-pointer transition-all duration-200 
+                ${
+                  selectedFriend === friend ? 
+                    "bg-primary transform scale-105" : // Selected friend styling
+                    "bg-neutral-300 hover:bg-neutral-500" // Non-selected friend styling
+                }
+              `
+            }
+          >
             <span>{friend.name}</span>
-            {selectedFriends.includes(friend) ? (
-              <button onClick={() => handleDeselectFriend(friend)}>Deselect</button>
-            ) : (
-              <button onClick={() => handleSelectFriend(friend)}>Select</button>
-            )}
-          </li>
+          </div>
         ))}
-      </ul>
-      <div>
-        <label>
-          Room:
-          <input type="text" value={room} onChange={e => setRoom(e.target.value)} />
-        </label>
       </div>
-      <button onClick={handleInvite}>Invite to Room</button>
+      <button onClick={handleInvite} className="px-4 py-2 mt-4 bg-blue-500 text-white rounded hover:bg-blue-600">Invite to Room</button>
+
+      <a className='text-3xl'>Accept Friends</a>
+      <div className="flex flex-col gap-4 w-full">
+        
+          <div 
+            className={
+              `p-4 rounded-lg shadow-sm cursor-pointer transition-all duration-200
+              `
+            }
+          >
+            <span>None</span>
+          </div>
+      </div>
+      
     </div>
   );
+  
 };
+

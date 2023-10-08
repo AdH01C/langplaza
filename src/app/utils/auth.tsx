@@ -101,7 +101,7 @@ export const signUpUser = async (email: any, username: any, password1: any, pass
     });
 
     if (response.status >= 200 && response.status < 300) {
-      return response.data; // Adjust this based on your backend's response
+      return response.data;
     } else {
       throw new Error(response.statusText);
     }

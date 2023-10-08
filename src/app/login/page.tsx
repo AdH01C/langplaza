@@ -7,16 +7,20 @@ import { loginUser } from '../utils/auth';
 import { useRouter } from 'next/navigation';
 
 
-
 export default function Login() {
   const [hasFailedLogin, setHasFailedLogin] = useState(false);
-  const [loginToken, setLoginToken] = useState<string | null>(null);
+  const [loginToken, setLoginToken] = useState<string | null>(null);    
 
   useEffect(() => {
-    setLoginToken(localStorage.getItem('token'));
-  });
+    setLoginToken(
+      localStorage.getItem('token') !== "undefined" 
+        ? localStorage.getItem('token') 
+        : null
+    );
 
-  const router = useRouter();
+  }, []);
+
+  const router = useRouter(); 
   const [error, setError] = useState(null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {

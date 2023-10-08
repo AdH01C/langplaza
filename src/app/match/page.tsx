@@ -7,6 +7,7 @@ import { useSpring, animated, config, useInView } from 'react-spring';
 import Header from '../components/Header';
 import { verify } from 'crypto';
 import { startChat } from '../utils/auth';
+import LoadingSpinner from '../components/Loading';
 
 
 const languages = ['Spanish', 'English', 'French', 'German', 'Chinese', 'Japanese', 'Russian', 'Italian']
@@ -14,7 +15,35 @@ const languages = ['Spanish', 'English', 'French', 'German', 'Chinese', 'Japanes
 export default function Match() {
   const [loading, setLoading] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
+  
+  const router = useRouter();
+  const [loginToken, setLoginToken] = useState<string | null>(null);
+  const [error, setError] = useState(null);
+  const [hasFailedMatching, setHasFailedMatching] = useState(false);
 
+  const [chatStarted, setChatStarted] = useState(false);
+  const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState<string[]>([]);
+  const [selectedLanguage, setSelectedLanguage] = useState('');
+
+  useEffect(() => {
+    setLoginToken(
+      localStorage.getItem('token') !== "undefined" 
+        ? localStorage.getItem('token') 
+        : null
+    );
+    // Set language by default
+    setSelectedLanguage(languages[0])
+    setLoading(false);
+  }, []);
+
+
+  const handleEnterPress = (e: { key: string; }) => {
+    if (e.key === 'Enter') {
+      handleSendMessage();
+    }
+  };
+  
   const initializeWebcam = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -25,34 +54,22 @@ export default function Match() {
       console.error("Error accessing the webcam:", error);
     }
   };
-  
-  const [chatStarted, setChatStarted] = useState(false);
-  const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<string[]>([]);
-  const [selectedLanguage, setSelectedLanguage] = useState('');
 
-  const handleEnterPress = (e: { key: string; }) => {
-    if (e.key === 'Enter') {
-      // Your action here, for example:
-      handleSendMessage();
-    }
-  };
-  
   const handleStartChat = async() => {
     // Get the room lanuage
     // join queue of the selected language
     // selectedLanguage --> "French"
-    const token = localStorage.getItem("token")
-    let resp = await startChat(token, selectedLanguage)
-    const roomId = resp.id
-    if (roomId && roomId !== "" ){
-      window.location.href = `./room/${roomId}`
+    try{
+      let resp = await startChat(loginToken, selectedLanguage)
+      if (resp.id !== "" ){
+        setChatStarted(true);
+        initializeWebcam();
+      }
+    } catch (error: any) {
+      console.error("Error starting chat:", error);
+      setHasFailedMatching(true);
+      setError(error.message);
     }
-    
-    // setChatStarted(true);
-    // initializeWebcam();
-    // You can add any initialization code for the chat here
-
     
   };
   
@@ -77,26 +94,13 @@ export default function Match() {
     }
   };
 
-  const router = useRouter();
-  const [loginToken, setLoginToken] = useState<string | null>(null);
-
-
-  useEffect(() => {
-    // This code will only run on the client side
-    setLoginToken(localStorage.getItem('token'));
-    console.log("loginToken: ", loginToken);
-    
-    // Set language by default
-    setSelectedLanguage(languages[0])
-  }, []); // The empty dependency array means this useEffect runs once when the component mounts
-
   return (
     <div className="flex flex-col w-screen min-h-screen bg-white overflow-hidden">
       <Header />
       {loading ? (
-        <h1 className="text-4xl font-bold text-center text-black mt-64">Loading...</h1>
+        <LoadingSpinner/>
       ) : (
-        loginToken ? (
+        loginToken? (
           !chatStarted ? (
             <div className="flex flex-col items-center justify-center align-middle h-screen">
               {/* Text for getting ready */}
@@ -115,7 +119,7 @@ export default function Match() {
                     <option key={index} value={language}>{language}</option>
                   ))
                 }
-              </select>
+              </select>              
               <br></br>
 
               {/* Button to start chat */}
@@ -125,6 +129,12 @@ export default function Match() {
               >
                 Start Chat
               </button>
+              <div className={`${hasFailedMatching ? 'flex' : 'hidden'} justify-center mt-4`}>
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                  <strong className="font-bold">{error}.</strong>
+                  <span className="block sm:inline"> Please try again.</span>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="flex h-screen">
