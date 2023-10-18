@@ -50,10 +50,10 @@ export default function Home() {
           
           <div className="text-center">
             <FadeInFromLeft>
-              <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">Welcome to Language Plaza</h1>
+              <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">Welcome to Pearl Lingo.</h1>
             
               <p className="mt-6 text-lg leading-8 text-gray-600">
-                Dive into a world of languages, connect with tutors, and join our vibrant community.
+                Dive into a world of languages, connect with others, and join our vibrant community. Maybe find a gril idk.
               </p>
               <div className="mt-10 flex items-center justify-center gap-x-6">
                 <a href="/login" className="rounded-md bg-primary px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Get started</a>

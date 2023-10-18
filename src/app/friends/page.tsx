@@ -6,8 +6,6 @@ import { Friend, FriendsList } from '../components/FriendsList';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '../components/Loading';
 
-
-
 export default function Friends() {
   const [loginToken, setLoginToken] = useState<string | null>(null);    
   const [loading, setLoading] = useState(true);
@@ -80,7 +78,7 @@ export default function Friends() {
             <div className="flex flex-col text-black w-3/4">
               {/* Chat */}
               <div className="flex flex-col align-middle h-full w-full p-42">
-                {selectedFriend && <a className='text-3xl'>{selectedFriend.name} </a>}
+                {/* {selectedFriend && <a className='text-3xl'>{selectedFriend.email} </a>} */}
                   <div className="flex-grow overflow-y-auto mb-4 border rounded-md">
                     {(messages[selectedFriend?.id ?? ''] || []).map((msg: string, index: number) => (
                       <div key={index} className="p-2 border-b text-black">

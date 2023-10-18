@@ -19,6 +19,8 @@ const config: Config = {
         "primary": "#2bb109",
         "secondary": "#368f1f",
         "tertiary": "#416e36",
+        // "red": "#ff0000",
+        // "dark-red": "#b10000",
       },
     },
   },

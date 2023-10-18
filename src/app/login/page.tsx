@@ -38,7 +38,7 @@ export default function Login() {
       router.push('/match');
       
     } catch (error : any) {
-      setError(error.message);
+      setError(error.response.data.message);
       setHasFailedLogin(true);
     }
   };  
@@ -129,10 +129,11 @@ export default function Login() {
 
             <div className={`${hasFailedLogin ? 'flex' : 'hidden'} justify-center mt-4`}>
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-                <strong className="font-bold">{error}.</strong>
-                <span className="block sm:inline"> Please try again.</span>
+                <strong className="font-bold">Error:</strong>
+                <span className="block sm:inline"> {error}</span>
               </div>
             </div>
+
 
           </div>
         </div>

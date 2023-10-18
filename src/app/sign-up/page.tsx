@@ -15,18 +15,17 @@ export default function SignUp() {
     const data = new FormData(event.currentTarget);
     const user = {
       email: data.get('email'),
-      username: data.get('username'), // add username field
+      name: data.get('name'), // add name field
       password1: data.get('password1'), // add password1 field
       password2: data.get('password2'), // add password2 field
     };
     try {
-      const result = await signUpUser(user.email, user.username, user.password1, user.password2); // pass all 4 arguments
+      const result = await signUpUser(user.email, user.name, user.password1, user.password2); // pass all 4 arguments
       router.push('/login');
 
     } catch (error : any) {
-      console.error('Error in handleSubmit:', error);
       setHasFailedSignUp(true);
-      setError(error.message);
+      setError(error.response.data.message);
     }
   };
 
@@ -81,15 +80,15 @@ export default function SignUp() {
             </div>
 
             <div>
-              <label htmlFor="username" className="block text-sm font-medium leading-6 text-gray-900">
-                Username
+              <label htmlFor="name" className="block text-sm font-medium leading-6 text-gray-900">
+                Name
               </label>
               <div className="mt-2">
                 <input
-                  id="username"
-                  name="username"
+                  id="name"
+                  name="name"
                   type="text"
-                  autoComplete="username"
+                  autoComplete="name"
                   required
                   className="px-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 />
@@ -128,6 +127,19 @@ export default function SignUp() {
             </div>
 
             <div>
+              <div className='flex gap-2 mt-2'>
+                <input
+                type="checkbox"
+                required
+                className='px-2 block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6'
+                />
+                <p className='text-xs text-gray-500'>
+                  I understand that this is a school project and that I will not hold PearlLingo responsible for any damages that may occur from using this website.
+                </p>
+              </div>
+            </div>
+
+            <div>
               <button
                 type="submit"
                 className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
@@ -147,8 +159,8 @@ export default function SignUp() {
 
       <div className={`${hasFailedSignUp ? 'flex' : 'hidden'} justify-center mt-4`}>
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-          <strong className="font-bold">{error}.</strong>
-          <span className="block sm:inline"> Please try again.</span>
+          <strong className="font-bold">Error:</strong>
+          <span className="block sm:inline"> {error}</span>
         </div>
       </div>
 

@@ -17,8 +17,6 @@ const setTokenOnClient = () => {
 setTokenOnClient();
 
 export const loginUser = async (email: FormDataEntryValue | null, password: FormDataEntryValue | null) => {
-  
-  
   try {
     // Send a POST request to your login endpoint with the user's credentials
     const response = await axios.post(auth_url + "/login", {
@@ -30,6 +28,7 @@ export const loginUser = async (email: FormDataEntryValue | null, password: Form
     if (response.status == 200) {
       const token = response.data.api_token;
       localStorage.setItem('token', token);
+      localStorage.setItem('user_id', response.data.id);
 
       if (localStorage.getItem('token') == "undefined")
         throw new Error("Token not received");
@@ -37,12 +36,11 @@ export const loginUser = async (email: FormDataEntryValue | null, password: Form
       return token;
     } else {
       // Handle non-2xx status codes
-      throw new Error(response.statusText); // You can also create a custom error message based on the response
+      throw new Error(response.data.message); // You can also create a custom error message based on the response
     }
 
   } catch (error) {
     // Handle login errors (like incorrect credentials)
-    
     throw error;
   }
 };
@@ -61,7 +59,7 @@ export const logoutUser = async () => {
 
         } else {
             // Handle non-2xx status codes
-            throw new Error(response.statusText); // You can also create a custom error message based on the response
+            throw new Error(response.data.message);
         }
 
     } catch (error) {
@@ -69,41 +67,40 @@ export const logoutUser = async () => {
         throw error;
     }
 
-}
+};
+export const startChat = async (userId: any, language: any) => {
+  try {
+    const response = await axios.post(room_url + '/room/start', {
+        "user": userId,
+        "language": language
+    });
 
-export const startChat = async (username: any, language: any) => {
-    try {
-      const response = await axios.post(room_url + '/room/start', {
-          "user": username,
-          "language": language
-      });
-  
-      if (response.status >= 200 && response.status < 300) {
-        return response.data; // Adjust this based on your backend's response
-      } else {
-        throw new Error(response.statusText);
-      }
-  
-    } catch (error) {
-      console.error('Start chat room error:', error);
-      throw error;
+    if (response.status >= 200 && response.status < 300) {
+      return response.data; // Adjust this based on your backend's response
+    } else {
+      throw new Error(response.data.message);
     }
-  };
 
-export const signUpUser = async (email: any, username: any, password1: any, password2: any) => {
+  } catch (error) {
+    console.error('Start chat room error:', error);
+    throw error;
+  }
+};
+
+export const signUpUser = async (email: any, name: any, password1: any, password2: any) => {
   try {
     const response = await axios.post(auth_url + '/sign-up', {
       email: email,
-      username: username,
+      name: name,
       password1: password1,
       password2: password2,
-
+      verified: 0,
     });
 
     if (response.status >= 200 && response.status < 300) {
       return response.data;
     } else {
-      throw new Error(response.statusText);
+      throw new Error(response.data.message);
     }
 
   } catch (error) {
