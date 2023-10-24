@@ -12,12 +12,8 @@ export default function Login() {
   const [loginToken, setLoginToken] = useState<string | null>(null);    
 
   useEffect(() => {
-    setLoginToken(
-      localStorage.getItem('token') !== "undefined" 
-        ? localStorage.getItem('token') 
-        : null
-    );
-
+    const token = localStorage.getItem('token');
+    setLoginToken(token);
   }, []);
 
   const router = useRouter(); 

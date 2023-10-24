@@ -27,10 +27,12 @@ export const loginUser = async (email: FormDataEntryValue | null, password: Form
     // Check if the status code is 2xx
     if (response.status == 200) {
       const token = response.data.api_token;
-      localStorage.setItem('token', token);
-      localStorage.setItem('user_id', response.data.id);
+      const user_id = response.data.id;
 
-      if (localStorage.getItem('token') == "undefined")
+      localStorage.setItem('token', token);
+      localStorage.setItem('user_id', user_id);
+
+      if (token == "undefined" || user_id == "undefined")
         throw new Error("Token not received");
 
       return token;
@@ -55,6 +57,7 @@ export const logoutUser = async () => {
         // Check if the status code is 2xx
         if (response.status >= 200 && response.status < 300) {
             localStorage.removeItem('token');
+            localStorage.removeItem('user_id');
             return true;
 
         } else {
