@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 
 let token;
 const auth_url = 'http://127.0.0.1:30000';
-const room_url = 'http://127.0.0.1:3003';
+const room_url = 'http://127.0.0.1:30001';
 
 const setTokenOnClient = () => {
   if (typeof window !== 'undefined') {
@@ -27,7 +27,7 @@ export const loginUser = async (email: FormDataEntryValue | null, password: Form
     // Check if the status code is 2xx
     if (response.status == 200) {
       const token = response.data.api_token;
-      const user_id = response.data.id;
+      const user_id = response.data.id || 1;
 
       localStorage.setItem('token', token);
       localStorage.setItem('user_id', user_id);

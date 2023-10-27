@@ -9,7 +9,7 @@ import { verify } from 'crypto';
 import { startChat } from '../utils/auth';
 import LoadingSpinner from '../components/Loading';
 import { addRequest, hasSentRequest, isFriend } from '../utils/friends';
-
+import { io } from "socket.io-client";
 type FriendRequestModalProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -69,6 +69,9 @@ export default function Match() {
   const [selectedLanguage, setSelectedLanguage] = useState('');
 
   const [otherUserID, setOtherUserID] = useState(6);
+  const [videoSocket, setVideoSocket] = useState<object | null>(null);
+
+  const [roomId, setRoomId] = useState<number | null>(null);
 
   useEffect(() => {
     const tokenFromLocalStorage = localStorage.getItem('token');
@@ -84,20 +87,21 @@ export default function Match() {
     }
 }, []);
 
-
-
   const handleEnterPress = (e: { key: string; }) => {
     if (e.key === 'Enter') {
       handleSendMessage();
     }
   };
-  
-  const initializeWebcam = async () => {
+
+  const initializeWebcam = async (roomId: number) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       if (videoRef.current) {
         (videoRef.current as HTMLVideoElement).srcObject = stream;
       }
+      const socket = io("http://localhost:5000")
+      setVideoSocket(socket)
+      socket.emit("join", { roomId, userId, socketId: socket.id })
     } catch (error) {
       console.error("Error accessing the webcam:", error);
     }
@@ -108,9 +112,12 @@ export default function Match() {
     // join queue of the selected language
     // selectedLanguage --> "French"
     try{
-      let resp = await startChat(userId, selectedLanguage)
+      const resp = await startChat(userId, selectedLanguage)
+
       if (resp.id && resp.id !== "" ){
         setChatStarted(true);
+
+        setRoomId(resp.id);
         // Add the other user id to the state
 
 
@@ -121,8 +128,7 @@ export default function Match() {
         if (await hasSentRequest(userId, otherUserID)) {
           setHasAddedFriend(true);
         }
-
-        initializeWebcam();
+        initializeWebcam(resp.id);
         // setOtherUserID();
       }
     } catch (error: any) {
