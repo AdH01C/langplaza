@@ -9,7 +9,7 @@ import { verify } from 'crypto';
 import { startChat } from '../utils/auth';
 import LoadingSpinner from '../components/Loading';
 import { addRequest, hasSentRequest, isFriend } from '../utils/friends';
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 type FriendRequestModalProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -47,8 +47,8 @@ const languages = ['Spanish', 'English', 'French', 'German', 'Chinese', 'Japanes
 
 export default function Match() {
   const [loading, setLoading] = useState(true);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const otherVideoRef = useRef<HTMLVideoElement>(null);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
   const router = useRouter();
   const [loginToken, setLoginToken] = useState<string | null>(null);
@@ -69,10 +69,12 @@ export default function Match() {
   const [selectedLanguage, setSelectedLanguage] = useState('');
 
   const [otherUserID, setOtherUserID] = useState(6);
-  const [videoSocket, setVideoSocket] = useState<object | null>(null);
+  const [videoSocket, setVideoSocket] = useState<Socket>();
 
-  const [roomId, setRoomId] = useState<number | null>(null);
-
+  const [roomId, setRoomId] = useState<number>();
+  // const [peerConnection, setPeerConnection] = useState<RTCPeerConnection>();
+  // const [createOfferState, setCreateOffer] = useState<boolean>();
+  // const []
   useEffect(() => {
     const tokenFromLocalStorage = localStorage.getItem('token');
     const userIdFromLocalStorage = localStorage.getItem('user_id');
@@ -87,23 +89,133 @@ export default function Match() {
     }
 }, []);
 
+  // useEffect(() => {
+  //   initializeWebcam(roomId);
+  // }, [videoSocket, peerConnection, roomId])
   const handleEnterPress = (e: { key: string; }) => {
     if (e.key === 'Enter') {
       handleSendMessage();
     }
   };
+  const initializeVideoConnections = async (roomId: number) => {
+    const newSocket = io("http://localhost:5000")
+    const pc_config = {
+      iceServers: [
+        // {
+        //   urls: 'stun:[STUN_IP]:[PORT]',
+        //   'credentials': '[YOR CREDENTIALS]',
+        //   'username': '[USERNAME]'
+        // },
+        {
+          urls: "stun:stun.l.google.com:19302",
+        },
+      ],
+    };
+    let peerConnection = new RTCPeerConnection(pc_config);
 
-  const initializeWebcam = async (roomId: number) => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      if (videoRef.current) {
-        (videoRef.current as HTMLVideoElement).srcObject = stream;
+    newSocket.on("all_users", (allUsers: Array<{ id: string; email: string }>) => {
+      let len = allUsers.length;
+      if (len > 0) {
+        createOffer(newSocket, peerConnection);
       }
-      const socket = io("http://localhost:5000")
-      setVideoSocket(socket)
-      socket.emit("join", { roomId, userId, socketId: socket.id })
-    } catch (error) {
-      console.error("Error accessing the webcam:", error);
+    });
+
+    newSocket.on("getOffer", (sdp: RTCSessionDescription) => {
+      //console.log(sdp);
+      console.log("get offer");
+      createAnswer(sdp, newSocket, peerConnection);
+    });
+
+    newSocket.on("getAnswer", (sdp: RTCSessionDescription) => {
+      console.log("get answer");
+      peerConnection.setRemoteDescription(new RTCSessionDescription(sdp));
+      //console.log(sdp);
+    });
+
+    newSocket.on("getCandidate", (candidate: RTCIceCandidateInit) => {
+      peerConnection.addIceCandidate(new RTCIceCandidate(candidate)).then(() => {
+        console.log("candidate add success");
+      });
+    });
+
+    // setVideoSocket(newSocket);
+    // setPeerConnection(peerConnection);
+    initializeWebcam(roomId, newSocket, peerConnection)
+  }
+  const createOffer = (videoSocket: Socket, peerConnection: RTCPeerConnection,) => {
+    if (peerConnection && videoSocket) {
+
+      peerConnection
+        .createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true })
+        .then(sdp => {
+          peerConnection.setLocalDescription(new RTCSessionDescription(sdp));
+          videoSocket.emit("offer", sdp);
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    }
+  };
+  const createAnswer = (sdp: RTCSessionDescription, videoSocket: Socket, peerConnection: RTCPeerConnection) => {
+    if (peerConnection && videoSocket) {
+      peerConnection.setRemoteDescription(new RTCSessionDescription(sdp)).then(() => {
+        console.log("answer set remote description success");
+        peerConnection
+          .createAnswer({
+            offerToReceiveVideo: true,
+            offerToReceiveAudio: true,
+          })
+          .then(sdp1 => {
+            console.log("create answer");
+            peerConnection.setLocalDescription(new RTCSessionDescription(sdp1));
+            videoSocket.emit("answer", sdp1);
+          })
+          .catch(error => {
+            console.log(error);
+          });
+      });
+    }
+  };
+
+  const initializeWebcam = async (roomId: number | undefined, videoSocket: Socket, peerConnection: RTCPeerConnection) => {
+
+    if (peerConnection && videoSocket) {
+      try {
+        navigator.mediaDevices
+          .getUserMedia({
+            video: true,
+            audio: true,
+          })
+          .then(stream => {
+            if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+
+            stream.getTracks().forEach(track => {
+              peerConnection.addTrack(track, stream);
+            });
+            peerConnection.onicecandidate = e => {
+              if (e.candidate) {
+                console.log("onicecandidate");
+                videoSocket.emit("candidate", e.candidate);
+              }
+            };
+            peerConnection.oniceconnectionstatechange = e => {
+              console.log(e);
+            };
+
+            peerConnection.ontrack = ev => {
+              console.log("add remotetrack success");
+              if (remoteVideoRef.current)
+                remoteVideoRef.current.srcObject = ev.streams[0];
+            };
+
+            videoSocket.emit("join", {
+              roomId,
+              userId,
+            });
+          })
+      } catch (error) {
+        console.error("Error accessing the webcam:", error);
+      }
     }
   };
 
@@ -128,7 +240,7 @@ export default function Match() {
         if (await hasSentRequest(userId, otherUserID)) {
           setHasAddedFriend(true);
         }
-        initializeWebcam(resp.id);
+        await initializeVideoConnections(resp.id);
         // setOtherUserID();
       }
     } catch (error: any) {
@@ -140,15 +252,15 @@ export default function Match() {
   };
   
   const stopWebcam = () => {
-    if (videoRef.current) {
-      const stream = videoRef.current.srcObject as MediaStream;
+    if (localVideoRef.current) {
+      const stream = localVideoRef.current.srcObject as MediaStream;
       const tracks = stream?.getTracks();
     
       tracks?.forEach((track: MediaStreamTrack) => {
         track.stop();
       });
     
-      videoRef.current.srcObject = null;
+      localVideoRef.current.srcObject = null;
     }
   }
 
@@ -236,6 +348,8 @@ export default function Match() {
                   <div className="flex flex-col items-center p-4 border rounded-md">
                     <div className="w-full h-56 bg-gray-300 mb-2">
                       {/* Something */}
+                          <video ref={remoteVideoRef} autoPlay playsInline></video>
+
                     </div>
                     <span className="text-black">Other participant</span>
                   </div>
@@ -243,7 +357,7 @@ export default function Match() {
                   {/* Video Call Card 2 */}
                   <div className="flex flex-col items-center p-4 border rounded-md">
                     <div className="h-full bg-gray-300 mb-2">
-                      <video ref={videoRef} autoPlay playsInline></video>
+                          <video ref={localVideoRef} autoPlay playsInline></video>
                     </div>
                     <span className="text-black">You</span>
                   </div>
