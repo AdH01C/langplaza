@@ -44,6 +44,7 @@ function FriendRequestModal({ isOpen, onClose, onConfirm, message, setMessage }:
 }
 
 const languages = ['Spanish', 'English', 'French', 'German', 'Chinese', 'Japanese', 'Russian', 'Italian']
+const videoURL = "http://localhost:5000"
 
 export default function Match() {
   const [loading, setLoading] = useState(true);
@@ -98,7 +99,7 @@ export default function Match() {
     }
   };
   const initializeVideoConnections = async (roomId: number) => {
-    const newSocket = io("http://localhost:5000")
+    const newSocket = io(videoURL)
     const pc_config = {
       iceServers: [
         // {
