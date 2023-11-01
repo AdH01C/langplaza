@@ -2,11 +2,37 @@ import Image from 'next/image'
 import { logoutUser } from '../utils/auth';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { FiBell, FiX } from 'react-icons/fi';
+
+interface Notification {
+    id: string;
+    title: string;
+    description: string;
+    type: string;
+    createdAt: string;
+    updatedAt: string;
+    userId: string;
+    friendId: string;
+}
 
 export default function Header() {
     const router = useRouter(); // Moved useRouter to top level
 
     const [loginToken, setLoginToken] = useState<string | null>(null);
+    const [openNotification, setOpenNotification] = useState<boolean>(false);
+    const [notifications, setNotifications] = useState<Notification[]>([
+        {
+            id: "1",
+            title: "New friend request",
+            description: "You have a new friend request from John Doe",
+            type: "friend_request",
+            createdAt: "2021-10-14T17:00:00.000Z",
+            updatedAt: "2021-10-14T17:00:00.000Z",
+            userId: "1",
+            friendId: "2"
+        }
+    ]);
+
 
     useEffect(() => {
       setLoginToken(
@@ -46,7 +72,33 @@ export default function Header() {
                     <a href="#" className="text-sm font-semibold leading-6 text-gray-900">About us</a>
                     </div>
 
-                    <div className="flex lg:items-center lg:justify-end lg:flex-1 lg:w-0">
+                    <div className="flex gap-1 lg:items-center lg:justify-end lg:flex-1 lg:w-0">
+                        <FiBell 
+                            className="text-2xl text-gray-500 hover:text-gray-900 cursor-pointer"
+                            onClick={() => setOpenNotification(!openNotification)}
+                        />
+                        { openNotification && (
+                            <div className="flex flex-col gap-4 absolute right-32 top-20 p-4 w-96 h-32 bg-white rounded-lg shadow-lg">
+                                <div className="flex justify-between">
+                                    <p className='text-xl font-medium text-gray-900'>Notification</p>
+                                    <FiX 
+                                        className="text-2xl text-gray-500 hover:text-gray-900 cursor-pointer"
+                                        onClick={() => setOpenNotification(!openNotification)}
+                                    />
+                                </div>
+                                {notifications.length > 0 ? (
+                                    notifications.map((notification) => (
+                                        <div className="flex flex-col cursor-pointer">
+                                            <p className="text-base font-medium text-gray-500 hover:text-gray-900">{notification.title}</p>
+                                            <p className="text-sm leading-6 text-gray-900">{notification.description}</p>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-sm leading-6 text-gray-900">No notifications</p>
+                                )}
+                            </div>
+                        )}
+                        <p className="ml-4 text-base font-medium text-gray-500 hover:text-gray-900">ID: {localStorage.getItem('user_id')}</p>
                         <a
                             href="/friends"
                             className="ml-8 whitespace-nowrap text-base font-medium text-gray-500 hover:text-gray-900"
@@ -85,7 +137,6 @@ export default function Header() {
                 </button>
                 </div>
                 <div className="hidden lg:flex lg:gap-x-12">
-                <a href="/match" className="text-sm font-semibold leading-6 text-gray-900">Match</a>
                 <a href="#" className="text-sm font-semibold leading-6 text-gray-900">Contact us</a>
                 <a href="#" className="text-sm font-semibold leading-6 text-gray-900">About us</a>
                 </div>

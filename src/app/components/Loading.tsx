@@ -12,7 +12,7 @@ const LoadingSpinner: React.FC = () => {
         height={100}
         width={100}
         />
-        <h1 className="text-4xl font-bold text-center text-black mt-64">Loading...</h1>
+        <h1 className="text-4xl font-bold text-center text-black mt-64">Connecting to services...</h1>
     </div>
   );
 };

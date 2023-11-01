@@ -129,6 +129,7 @@ export default function Match() {
       console.error("Error starting chat:", error);
       setHasFailedMatching(true);
       setError(error);
+      setLoading(true);
     }
     
   };
