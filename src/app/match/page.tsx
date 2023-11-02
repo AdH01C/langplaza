@@ -44,7 +44,7 @@ function FriendRequestModal({ isOpen, onClose, onConfirm, message, setMessage }:
 }
 
 const languages = ['Spanish', 'English', 'French', 'German', 'Chinese', 'Japanese', 'Russian', 'Italian']
-const videoURL = "http://localhost:5000"
+const videoURL = process.env.NEXT_PUBLIC_VIDEO_URL as string;
 
 export default function Match() {
   const [loading, setLoading] = useState(true);
@@ -350,16 +350,15 @@ export default function Match() {
                   <div className="flex flex-col items-center p-4 border rounded-md">
                     <div className="w-full h-56 bg-gray-300 mb-2">
                       {/* Something */}
-                          <video ref={remoteVideoRef} autoPlay playsInline></video>
-
+                          <video ref={remoteVideoRef} className='w-full h-full bg-white' autoPlay playsInline></video>
                     </div>
                     <span className="text-black">Other participant</span>
                   </div>
     
                   {/* Video Call Card 2 */}
                   <div className="flex flex-col items-center p-4 border rounded-md">
-                    <div className="h-full bg-gray-300 mb-2">
-                          <video ref={localVideoRef} autoPlay playsInline></video>
+                    <div className="w-full h-56 bg-gray-300 mb-2">
+                          <video ref={localVideoRef} className='w-full h-full bg-white' autoPlay playsInline></video>
                     </div>
                     <span className="text-black">You</span>
                   </div>

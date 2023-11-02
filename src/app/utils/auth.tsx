@@ -1,9 +1,13 @@
+"use client";
+
 import axios from 'axios';
-import { useEffect } from 'react';
+import { useState } from 'react';
+
 
 let token;
-const auth_url = 'http://127.0.0.1:30000';
-const room_url = 'http://127.0.0.1:30001';
+
+const authUrl = process.env.NEXT_PUBLIC_AUTH_URL;
+const roomsUrl = process.env.NEXT_PUBLIC_ROOMS_URL;
 
 const setTokenOnClient = () => {
   if (typeof window !== 'undefined') {
@@ -19,7 +23,7 @@ setTokenOnClient();
 export const loginUser = async (email: FormDataEntryValue | null, password: FormDataEntryValue | null) => {
   try {
     // Send a POST request to your login endpoint with the user's credentials
-    const response = await axios.post(auth_url + "/login", {
+    const response = await axios.post(authUrl + "/login", {
       email: email,
       password: password,
     });
@@ -49,7 +53,7 @@ export const loginUser = async (email: FormDataEntryValue | null, password: Form
 export const logoutUser = async () => {
     try {
         // Send a POST request to your logout endpoint
-        const response = await axios.patch(auth_url + "/logout", {
+        const response = await axios.patch(authUrl + "/logout", {
             // Pass in the token in the request body
             Authorization: localStorage.getItem('token'),
         });
@@ -73,7 +77,7 @@ export const logoutUser = async () => {
 };
 export const startChat = async (userId: any, language: any) => {
   try {
-    const response = await axios.post(room_url + '/room/start', {
+    const response = await axios.post(roomsUrl + '/room/start', {
         "user": userId,
         "language": language
     });
@@ -92,7 +96,7 @@ export const startChat = async (userId: any, language: any) => {
 
 export const signUpUser = async (email: any, name: any, password1: any, password2: any) => {
   try {
-    const response = await axios.post(auth_url + '/sign-up', {
+    const response = await axios.post(authUrl + '/sign-up', {
       email: email,
       name: name,
       password1: password1,

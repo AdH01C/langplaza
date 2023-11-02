@@ -53,7 +53,7 @@ export default function Home() {
               <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">Welcome to Pearl Lingo.</h1>
             
               <p className="mt-6 text-lg leading-8 text-gray-600">
-                Dive into a world of languages, connect with others, and join our vibrant community. We're totally separate from DuoLingo and we're not affiliated with them in any way. Like fr. Legit.
+                Dive into a world of languages, connect with others, and join our vibrant community. We are totally separate from DuoLingo and we are not affiliated with them in any way. Like fr. Legit.
               </p>
               <div className="mt-10 flex items-center justify-center gap-x-6">
                 <a href="/login" className="rounded-md bg-primary px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Get started</a>

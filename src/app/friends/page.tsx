@@ -5,10 +5,13 @@ import Header from '../components/Header';
 import { Friend, FriendsList } from '../components/FriendsList';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '../components/Loading';
+import axios from 'axios';
+import { createPrivateRoom } from '../utils/friends';
 
 export default function Friends() {
   const [loginToken, setLoginToken] = useState<string | null>(null);    
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     setLoginToken(
@@ -29,9 +32,15 @@ export default function Friends() {
 
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
 
-  const handleInvite = (selectedFriend: Friend | null, room: string) => {
+  const handleInvite = async (selectedFriend: Friend | null, room: string) => {
     // Handle the invitation here
     // You now have access to the selectedFriend here
+    const resp = await createPrivateRoom(selectedFriend?.id ?? '');
+
+    // Send the link to the user
+    
+
+    router.push(`/room/${resp.id}`);
   };
 
   const [message, setMessage] = useState('');

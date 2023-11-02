@@ -3,7 +3,8 @@ import axios from 'axios';
 import { io } from 'socket.io-client';
 
 // "undefined" means the URL will be computed from the `window.location` object
-const URL: string = process.env.NODE_ENV === 'production' ? process.env.VIDEO_URL as string : 'http://localhost:5000';
+// const URL: string = process.env.NODE_ENV === 'production' ? process.env.NEXT_PUBLIC_VIDEO_URL as string : 'http://localhost:5000';
+const URL = process.env.NEXT_PUBLIC_VIDEO_URL as string;
 export const socket = io(URL, {
   autoConnect: false
 });

@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 let token;
-const baseUrl = 'http://127.0.0.1:30000';  // Base URL of your Flask server
+const authUrl = process.env.NEXT_PUBLIC_AUTH_URL;
+const roomsUrl = process.env.NEXT_PUBLIC_ROOMS_URL;
 
 const setTokenOnClient = () => {
     if (typeof window !== 'undefined') {
@@ -16,8 +17,8 @@ setTokenOnClient();
 
 export const getAllFriends = async (userId: any) => {
   try {
-    const response = await axios.get(`${baseUrl}/user/${userId}/friends`);
-
+    const response = await axios.get(`${authUrl}/user/${userId}/friends`);
+    console.log(response.data);
     if (response.status === 200) {
       return response.data.data.friends;
     } else {
@@ -32,7 +33,7 @@ export const getAllFriends = async (userId: any) => {
 
 export const addFriend = async (userId: any, friendId: any) => {
   try {
-    const response = await axios.post(`${baseUrl}/user/${userId}/add_friend/${friendId}`);
+    const response = await axios.post(`${authUrl}/user/${userId}/add_friend/${friendId}`);
 
     if (response.status === 200) {
       return response.data.message;
@@ -48,7 +49,7 @@ export const addFriend = async (userId: any, friendId: any) => {
 
 export const removeFriend = async (userId: any, friendId: any) => {
   try {
-    const response = await axios.delete(`${baseUrl}/user/${userId}/remove_friend/${friendId}`);
+    const response = await axios.delete(`${authUrl}/user/${userId}/remove_friend/${friendId}`);
 
     if (response.status === 200) {
       return response.data.message;
@@ -64,7 +65,7 @@ export const removeFriend = async (userId: any, friendId: any) => {
 
 export const getSentRequests = async (userId: any) => {
   try {
-    const response = await axios.get(`${baseUrl}/user/${userId}/sent_requests`);
+    const response = await axios.get(`${authUrl}/user/${userId}/sent_requests`);
 
     if (response.status === 200) {
       return response.data.data;
@@ -80,7 +81,7 @@ export const getSentRequests = async (userId: any) => {
 
 export const getReceivedRequests = async (userId: any) => {
   try {
-    const response = await axios.get(`${baseUrl}/user/${userId}/received_requests`);
+    const response = await axios.get(`${authUrl}/user/${userId}/received_requests`);
 
     if (response.status === 200) {
       return response.data.data;
@@ -103,7 +104,7 @@ export const addRequest = async (user_id :string |  null, target_user_id: number
       "target_user_id": target_user_id,
     };
     
-    const response = await axios.post(`${baseUrl}/request`, data);
+    const response = await axios.post(`${authUrl}/request`, data);
     
 
     if (response.status === 201) {
@@ -120,7 +121,7 @@ export const addRequest = async (user_id :string |  null, target_user_id: number
 
 export const updateRequestStatus = async (requestId: any, status: any) => {
   try {
-    const response = await axios.patch(`${baseUrl}/request/${requestId}`, {
+    const response = await axios.patch(`${authUrl}/request/${requestId}`, {
       request_status: status
     });
 
@@ -158,7 +159,7 @@ export const hasSentRequest = async (userId: any, friendId: any) => {
 
 export const getUser = async (userId: any) => {
     try {
-        const response = await axios.get(`${baseUrl}/user/${userId}`);
+        const response = await axios.get(`${authUrl}/user/${userId}`);
         if (response.status === 200) {
             return response.data.data;
         } else {
@@ -166,6 +167,23 @@ export const getUser = async (userId: any) => {
         }
     } catch (error) {
         console.error('Get user error:', error);
+        throw error;
+    }
+}
+
+export const createPrivateRoom = async (friendId: any) => {
+    try {
+        const response = await axios.post(`${roomsUrl}/room/private`, {
+            "user1": 5,
+            "user2": friendId
+        });
+        if (response.status === 200) {
+            return response.data;
+        } else {
+            throw new Error(response.data.message);
+        }
+    } catch (error) {
+        console.error('Create private room error:', error);
         throw error;
     }
 }

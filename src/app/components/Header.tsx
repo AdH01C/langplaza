@@ -22,7 +22,7 @@ export default function Header() {
     const [openNotification, setOpenNotification] = useState<boolean>(false);
     const [notifications, setNotifications] = useState<Notification[]>([
         {
-            id: "1",
+            id: "jtnj3iwhj",
             title: "New friend request",
             description: "You have a new friend request from John Doe",
             type: "friend_request",
@@ -88,7 +88,7 @@ export default function Header() {
                                 </div>
                                 {notifications.length > 0 ? (
                                     notifications.map((notification) => (
-                                        <div className="flex flex-col cursor-pointer">
+                                        <div key={notification.id + notification.createdAt} className="flex flex-col cursor-pointer">
                                             <p className="text-base font-medium text-gray-500 hover:text-gray-900">{notification.title}</p>
                                             <p className="text-sm leading-6 text-gray-900">{notification.description}</p>
                                         </div>
