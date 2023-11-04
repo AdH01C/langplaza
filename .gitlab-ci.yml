@@ -1,0 +1,41 @@
+image: node:latest
+
+cache:
+  paths:
+    - node_modules/
+    - .yarn/cache
+
+stages:
+  - install
+  - build
+  - release
+
+install_dependencies:
+  stage: install
+  script:
+    - yarn install --frozen-lockfile
+  artifacts:
+    paths:
+      - node_modules/
+
+build_application:
+  stage: build
+  script:
+    - yarn build
+  artifacts:
+    paths:
+      - .next/
+    expire_in: 1 hour
+
+release-image:
+  stage: release
+  image: docker:24.0.2  # Use Docker image to provide Docker CLI for building and pushing
+  services:
+    - docker:dind  # Use Docker-in-Docker service to enable Docker commands
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY  # Log in to GitLab's container registry
+  script:
+    - docker build --pull -t "$CI_REGISTRY_IMAGE/$CI_COMMIT_BRANCH:latest" -t "$CI_REGISTRY_IMAGE/$CI_COMMIT_BRANCH:$CI_COMMIT_SHA" .  # Build and tag the image
+    - docker push "$CI_REGISTRY_IMAGE/$CI_COMMIT_BRANCH" --all-tags  # Push the image and all its tags to the registry
+  only:
+    - master  # This job will only run on the main branch; adjust as needed for your workflow

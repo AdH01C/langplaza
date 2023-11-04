@@ -13,7 +13,9 @@ export type Friend = {
 export type FriendRequest = {
   id: string;
   user_id: string;
+  user_name: string;
   target_user_id: string;
+  target_user_name: string;
   request_message: string;
   request_status: string;
 };
@@ -70,7 +72,7 @@ export const FriendsList: React.FC<FriendsListProps> = ({ onInvite, selectedFrie
       <div className="flex flex-col gap-4 w-full"> 
         {friends.map(friend => (
           <div 
-            key={friend.id}
+            key={friend.id + friend.name}
             onClick={() => handleSelectFriend(friend)}
             className={
               `p-4 rounded-lg shadow-sm cursor-pointer transition-all duration-200 
@@ -82,7 +84,7 @@ export const FriendsList: React.FC<FriendsListProps> = ({ onInvite, selectedFrie
               `
             }
           >
-            <span>friend.name</span>
+            <span>{friend.name}</span>
           </div>
         ))}
 
@@ -95,7 +97,7 @@ export const FriendsList: React.FC<FriendsListProps> = ({ onInvite, selectedFrie
           <div className={`p-4 rounded-lg shadow-sm transition-all duration-200`}>
             {friendRequests.map(friend => (
               <span className="flex justify-between gap-4" key={"friend" + friend.id}>
-                <span>friend.name</span>
+                <span>{friend.user_name}</span>
                 <span>{friend.request_message}</span>
                 <div className="flex gap-4">
                   <FiCheck className="cursor-pointer" />

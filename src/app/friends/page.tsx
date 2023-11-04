@@ -23,8 +23,6 @@ export default function Friends() {
 
   }, []);
 
-  
-
   // const handleAccept = (room: string) => {
   //   // Handle the acceptance here
   //   // For example, you can send a request to your server to accept the invitation
@@ -39,7 +37,6 @@ export default function Friends() {
 
     // Send the link to the user
     
-
     router.push(`/room/${resp.id}`);
   };
 

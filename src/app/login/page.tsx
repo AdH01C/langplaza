@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import FadeInFromLeft from '../components/FadeInFromLeft';
 import { loginUser } from '../utils/auth';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 
 export default function Login() {
@@ -116,9 +117,9 @@ export default function Login() {
                 </button>
                 <p className="mt-10 text-center text-sm text-gray-500">
                   Not a member?{' '}
-                  <a href="/sign-up" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
+                  <Link href="/sign-up" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
                     Register now
-                  </a>
+                  </Link>
                 </p>
               </div>
             </FadeInFromLeft>

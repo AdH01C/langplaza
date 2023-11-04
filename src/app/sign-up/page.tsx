@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import FadeInFromLeft from '../components/FadeInFromLeft';
 import { signUpUser } from '../utils/auth'; // Adjust the import path as needed
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function SignUp() {
   const [hasFailedSignUp, setHasFailedSignUp] = useState(false);
@@ -150,9 +151,9 @@ export default function SignUp() {
           </form>
           <p className="mt-10 text-center text-sm text-gray-500">
             Already a member?{' '}
-            <a href="/login" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
+            <Link href="/login" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
               Log in here
-            </a>
+            </Link>
           </p>
         </div>
       </FadeInFromLeft>
