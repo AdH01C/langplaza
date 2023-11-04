@@ -3,7 +3,7 @@
 import { get } from 'http';
 import React, { useState, useEffect } from 'react';
 import { FiCheck, FiX } from 'react-icons/fi';
-import { getAllFriends, getReceivedRequests } from '../utils/friends';
+import { getAllFriends, getReceivedRequests, updateRequestStatus } from '../utils/friends';
 
 export type Friend = {
   id: string;
@@ -57,6 +57,11 @@ export const FriendsList: React.FC<FriendsListProps> = ({ onInvite, selectedFrie
     } else {
       setSelectedFriend(friend); // Select the clicked friend
     }
+  };
+
+  const handleAcceptRequest = async (friendRequest: FriendRequest) => {
+    const data = await updateRequestStatus(friendRequest.id, "accepted");
+    
   };
 
   const handleInvite = () => {

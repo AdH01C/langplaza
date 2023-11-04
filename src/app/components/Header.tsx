@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FiBell, FiX } from 'react-icons/fi';
 import Link from 'next/link';
+import BellWithNumber from './BellWithNumber';
 
 interface Notification {
     request_id: string;
@@ -41,7 +42,7 @@ export default function Header() {
         try {
             await logoutUser();
             setLoginToken(null);
-            localStorage.removeItem('token');
+            localStorage.clear();
             router.push('/'); // Using router object here
             
         } catch (error) {
@@ -71,10 +72,10 @@ export default function Header() {
                     </div>
 
                     <div className="flex gap-1 lg:items-center lg:justify-end lg:flex-1 lg:w-0">
-                        <FiBell 
-                            className="text-2xl text-gray-500 hover:text-gray-900 cursor-pointer"
+                        <BellWithNumber 
+                            count={notifications.length}
                             onClick={() => setOpenNotification(!openNotification)}
-                        />
+                        />    
                         { openNotification && (
                             <div className="flex flex-col gap-4 absolute right-32 top-20 p-4 w-96 h-32 bg-white rounded-lg shadow-lg">
                                 <div className="flex justify-between">

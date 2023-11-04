@@ -60,27 +60,17 @@ export const loginUser = async (email: FormDataEntryValue | null, password: Form
 export const logoutUser = async () => {
     try {
         // Send a POST request to your logout endpoint
-        const response = await axios.patch(authUrl + "/logout", {
-            // Pass in the token in the request body
-            Authorization: localStorage.getItem('token'),
-        });
+        const response = await axios.patch(authUrl + "/logout");
 
         // Check if the status code is 2xx
         if (response.status >= 200 && response.status < 300) {
             localStorage.clear();
             return true;
 
-        } else {
-            if (response.status == 401 || response.status == 403) {
-                localStorage.clear();
-                return true;
-            }
-            // Handle non-2xx status codes
-            throw new Error(response.data.message);
-        }
+        } 
 
     } catch (error) {
-        throw error;
+      localStorage.clear();
     }
 
 };

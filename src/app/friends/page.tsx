@@ -84,8 +84,9 @@ export default function Friends() {
             <div className="flex flex-col text-black w-3/4">
               {/* Chat */}
               <div className="flex flex-col align-middle h-full w-full p-42">
-                {/* {selectedFriend && <a className='text-3xl'>{selectedFriend.email} </a>} */}
-                  <div className="flex-grow overflow-y-auto mb-4 border rounded-md">
+                {selectedFriend ?
+                 (<a className='text-3xl'>{selectedFriend.name} </a>):(<a className='text-3xl'>Select a friend</a>)}
+                  <div className="flex-grow overflow-y-auto mt-2 mb-4 border rounded-md">
                     {(messages[selectedFriend?.id ?? ''] || []).map((msg: string, index: number) => (
                       <div key={index} className="p-2 border-b text-black">
                         {msg}
@@ -98,8 +99,9 @@ export default function Friends() {
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       onKeyDown={handleEnterPress}
-                      className="flex-grow px-3 py-2 mr-2 border rounded-md text-black"
+                      className={`flex-grow px-3 py-2 mr-2 border rounded-md text-black ${selectedFriend ? '' : 'bg-gray-200'}`}
                       placeholder="Type your message..."
+                      disabled={!selectedFriend}
                     />
                     <button onClick={handleSendMessage} className="px-4 py-2 text-white bg-primary rounded-md hover:bg-secondary">
                       Send
