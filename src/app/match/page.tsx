@@ -7,9 +7,10 @@ import { useSpring, animated, config, useInView } from 'react-spring';
 import Header from '../components/Header';
 import { verify } from 'crypto';
 import { startChat } from '../utils/auth';
+import { io, Socket } from "socket.io-client";
 import LoadingSpinner from '../components/Loading';
 import { addRequest, hasSentRequest, isFriend } from '../utils/friends';
-import { io, Socket } from "socket.io-client";
+
 type FriendRequestModalProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -68,9 +69,27 @@ export default function Match() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<string[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState('');
+  const [chatSocket, setChatSocket] = useState<object | null>(null);
 
   const [otherUserID, setOtherUserID] = useState(6);
   const [videoSocket, setVideoSocket] = useState<Socket>();
+
+  // Socket.IO implementation - Client
+  const initializeChat = async (roomId: number) => {
+    try {
+      const socket = io(process.env.NEXT_PUBLIC_CHAT_URL as string);
+      
+      socket.on("connect", () => {
+        setMessages([...messages, "You connected with id: " + roomId]);
+      })
+      socket.on("receive-message", (message: string) => {
+        setMessages(prevMessages => [...prevMessages, "Friend: " + message]);
+      })
+      setChatSocket(socket);
+    } catch (error) {
+      console.error("Error accessing the chat:", error);
+    }
+  };
 
   const [roomId, setRoomId] = useState<number>();
   // const [peerConnection, setPeerConnection] = useState<RTCPeerConnection>();
@@ -90,9 +109,7 @@ export default function Match() {
     }
 }, []);
 
-  // useEffect(() => {
-  //   initializeWebcam(roomId);
-  // }, [videoSocket, peerConnection, roomId])
+
   const handleEnterPress = (e: { key: string; }) => {
     if (e.key === 'Enter') {
       handleSendMessage();
@@ -143,40 +160,37 @@ export default function Match() {
     // setPeerConnection(peerConnection);
     initializeWebcam(roomId, newSocket, peerConnection)
   }
-  const createOffer = (videoSocket: Socket, peerConnection: RTCPeerConnection,) => {
-    if (peerConnection && videoSocket) {
+// Corrected createOffer function with await
+const createOffer = async (videoSocket: Socket, peerConnection: RTCPeerConnection) => {
+  if (peerConnection && videoSocket) {
+    try {
+      const sdp = await peerConnection.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
+      await peerConnection.setLocalDescription(new RTCSessionDescription(sdp));
+      videoSocket.emit("offer", sdp);
+    } catch (error) {
+      console.error('Error creating offer:', error);
+    }
+  }
+};
 
-      peerConnection
-        .createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true })
-        .then(sdp => {
-          peerConnection.setLocalDescription(new RTCSessionDescription(sdp));
-          videoSocket.emit("offer", sdp);
-        })
-        .catch(error => {
-          console.log(error);
-        });
-    }
-  };
-  const createAnswer = (sdp: RTCSessionDescription, videoSocket: Socket, peerConnection: RTCPeerConnection) => {
-    if (peerConnection && videoSocket) {
-      peerConnection.setRemoteDescription(new RTCSessionDescription(sdp)).then(() => {
-        console.log("answer set remote description success");
-        peerConnection
-          .createAnswer({
-            offerToReceiveVideo: true,
-            offerToReceiveAudio: true,
-          })
-          .then(sdp1 => {
-            console.log("create answer");
-            peerConnection.setLocalDescription(new RTCSessionDescription(sdp1));
-            videoSocket.emit("answer", sdp1);
-          })
-          .catch(error => {
-            console.log(error);
-          });
+// Corrected createAnswer function with await
+const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, peerConnection: RTCPeerConnection) => {
+  if (peerConnection && videoSocket) {
+    try {
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(sdp));
+      console.log("answer set remote description success");
+      const answer = await peerConnection.createAnswer({
+        offerToReceiveVideo: true,
+        offerToReceiveAudio: true,
       });
+      await peerConnection.setLocalDescription(new RTCSessionDescription(answer));
+      videoSocket.emit("answer", answer);
+    } catch (error) {
+      console.error('Error creating answer:', error);
     }
-  };
+  }
+};
+
 
   const initializeWebcam = async (roomId: number | undefined, videoSocket: Socket, peerConnection: RTCPeerConnection) => {
 
@@ -188,8 +202,10 @@ export default function Match() {
             audio: true,
           })
           .then(stream => {
-            if (localVideoRef.current) localVideoRef.current.srcObject = stream;
-
+            if (localVideoRef.current) {
+              localVideoRef.current.srcObject = stream;
+              localVideoRef.current.muted = true;
+            }
             stream.getTracks().forEach(track => {
               peerConnection.addTrack(track, stream);
             });
@@ -231,6 +247,7 @@ export default function Match() {
         setChatStarted(true);
 
         setRoomId(resp.id);
+        initializeChat(resp.id);
         // Add the other user id to the state
 
 
@@ -269,6 +286,9 @@ export default function Match() {
   const handleSendMessage = () => {
     if (message.trim()) {
       setMessages([...messages, "You: " + message]);
+      if (chatSocket) {
+        (chatSocket as Socket).emit('send-message', message);
+      }
       setMessage('');
       // You can add code to send the message to the server or another user here
     }

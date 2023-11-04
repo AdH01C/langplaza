@@ -8,6 +8,7 @@ let token;
 
 const authUrl = process.env.NEXT_PUBLIC_AUTH_URL;
 const roomsUrl = process.env.NEXT_PUBLIC_ROOMS_URL;
+const notificationsUrl = process.env.NEXT_PUBLIC_NOTIFICATIONS_URL;
 
 const setTokenOnClient = () => {
   if (typeof window !== 'undefined') {
@@ -32,9 +33,15 @@ export const loginUser = async (email: FormDataEntryValue | null, password: Form
     if (response.status == 200) {
       const token = response.data.api_token;
       const user_id = response.data.data.id || 1;
+      const email = response.data.data.email || "";
+      const name = response.data.data.name || "";
+      const verified = response.data.data.verified || 0;
 
       localStorage.setItem('token', token);
       localStorage.setItem('user_id', user_id);
+      localStorage.setItem('email', email);
+      localStorage.setItem('name', name);
+      localStorage.setItem('verified', verified);
 
       if (token == "undefined" || user_id == "undefined")
         throw new Error("Token not received");
@@ -60,17 +67,19 @@ export const logoutUser = async () => {
 
         // Check if the status code is 2xx
         if (response.status >= 200 && response.status < 300) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user_id');
+            localStorage.clear();
             return true;
 
         } else {
+            if (response.status == 401 || response.status == 403) {
+                localStorage.clear();
+                return true;
+            }
             // Handle non-2xx status codes
             throw new Error(response.data.message);
         }
 
     } catch (error) {
-        // Handle logout errors
         throw error;
     }
 
@@ -115,3 +124,19 @@ export const signUpUser = async (email: any, name: any, password1: any, password
     throw error;
   }
 };
+
+export const fetchNotifications = async () => {
+  try {
+    const response = await axios.get(notificationsUrl + '/notifications/' + localStorage.getItem('email'));
+
+    if (response.status >= 200 && response.status < 300) {
+      return response.data;
+    } else {
+      throw new Error(response.data.message);
+    }
+
+  } catch (error) {
+    console.error('Fetch notifications error:', error);
+    throw error;
+  }
+}
