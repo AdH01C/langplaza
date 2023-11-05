@@ -20,7 +20,7 @@ export default function Room({ params }: { params: { roomId: string } }) {
 
   const router = useRouter();
   const [loginToken, setLoginToken] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string>();
   const [myChatSocketId, setMyChatSocketId] = useState<string | null>(null);
   const [myVideoSocketId, setMyVideoSocketId] = useState<string | null>(null);
   const [error, setError] = useState(null);
@@ -28,7 +28,7 @@ export default function Room({ params }: { params: { roomId: string } }) {
   const [hasFailedMatching, setHasFailedMatching] = useState(false);
   const [hasFailedAddingFriend, setHasFailedAddingFriend] = useState(false);
 
-  const [chatStarted, setChatStarted] = useState(false);
+  const [chatStarted, setChatStarted] = useState(0);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<string[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState('');
@@ -60,19 +60,27 @@ export default function Room({ params }: { params: { roomId: string } }) {
     }
   };
 
+  useEffect (() => {
+    if (chatStarted == 1) {
+      console.log("francis :)");
+      handleStartChat();
+    }
+
+      
+  }, [chatStarted]);
   
   useEffect(() => {
     const tokenFromLocalStorage = localStorage.getItem('token');
     const userIdFromLocalStorage = localStorage.getItem('user_id');
     
-    setLoginToken(tokenFromLocalStorage);
-    setUserId(userIdFromLocalStorage);
-    
     if (tokenFromLocalStorage !== null && userIdFromLocalStorage !== null) {
+      setLoginToken(tokenFromLocalStorage);
+      setUserId(userIdFromLocalStorage);
+    
       setLoading(false);
     }
 
-    handleStartChat();
+    setChatStarted(chatStarted + 1);
 
     const handleTabClose = () => {
       // Call leaveChat when the tab is closed or refreshed
@@ -107,8 +115,6 @@ export default function Room({ params }: { params: { roomId: string } }) {
 
   const initializeVideoConnections = async (roomId: number) => {
     const newSocket = io(videoURL);
-    console.log("video socket id", newSocket );
-    setMyVideoSocketId(newSocket.id);
     const pc_config = {
       iceServers: [
         {
@@ -122,7 +128,6 @@ export default function Room({ params }: { params: { roomId: string } }) {
       // Ensure userId is a string and not undefined
       const otherUsers = allUsers.filter(user => user.id !== myVideoSocketId);
       console.log("otherUsers", otherUsers);
-      console.log(otherUsers[0].id, myVideoSocketId);
       let len = otherUsers.length;
       if (len > 0) {
         createOffer(newSocket, peerConnection);
@@ -207,13 +212,14 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
 
             peerConnection.ontrack = ev => {
               console.log("add remotetrack success");
-              if (remoteVideoRef.current)
+              if (remoteVideoRef.current) {
                 remoteVideoRef.current.srcObject = ev.streams[0];
+              }
             };
 
             videoSocket.emit("join", {
               roomId,
-              userId,
+              userId: localStorage.getItem('user_id'),
             });
           })
       } catch (error) {

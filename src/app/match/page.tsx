@@ -247,7 +247,7 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
 
             videoSocket.emit("join", {
               roomId,
-              userId,
+              userId: localStorage.getItem('user_id'),
             });
           })
       } catch (error) {
