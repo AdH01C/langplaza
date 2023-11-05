@@ -101,7 +101,6 @@ export default function Match() {
     
     setLoginToken(tokenFromLocalStorage);
     setUserId(userIdFromLocalStorage);
-    // Set language by default
     setSelectedLanguage(languages[0]);
     
     if (tokenFromLocalStorage !== null && userIdFromLocalStorage !== null) {
@@ -308,7 +307,7 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
     if (message.trim()) {
       setMessages([...messages, "You: " + message]);
       if (chatSocket) {
-        (chatSocket as Socket).emit('send-message', message);
+        (chatSocket as Socket).emit('send-message', message, roomId);
       }
       setMessage('');
       // You can add code to send the message to the server or another user here
