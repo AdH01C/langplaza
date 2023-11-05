@@ -32,8 +32,10 @@ export default function Header() {
         const data = fetchNotifications();
         data.then((res) => {
             // setNotifications(res.data.data);
-            const notification = res[0].data;
-            setNotifications([...notifications, notification]);
+            if (res && res[0]) {
+                const notification = res[0].data;
+                setNotifications([...notifications, notification]);
+            }
         })
     }, []);
       

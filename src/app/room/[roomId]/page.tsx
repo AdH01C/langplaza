@@ -14,13 +14,15 @@ import { io, Socket } from "socket.io-client";
 const videoURL = process.env.NEXT_PUBLIC_VIDEO_URL as string;
 
 export default function Room({ params }: { params: { roomId: string } }) {
-    const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
   const router = useRouter();
   const [loginToken, setLoginToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [myChatSocketId, setMyChatSocketId] = useState<string | null>(null);
+  const [myVideoSocketId, setMyVideoSocketId] = useState<string | null>(null);
   const [error, setError] = useState(null);
 
   const [hasFailedMatching, setHasFailedMatching] = useState(false);
@@ -42,10 +44,12 @@ export default function Room({ params }: { params: { roomId: string } }) {
       const socket = io(process.env.NEXT_PUBLIC_CHAT_URL as string);
       
       socket.on("connect", () => {
-        setMessages([...messages, "You connected with id: " + roomId]);
-      })
-      socket.on("receive-message", (message: string, senderId: string) => {
-        if (senderId !== userId) { // Check if the sender is not the current user
+        setMyChatSocketId(socket.id); // Store the user's socket ID
+        setMessages(messages => [...messages, "You connected with id: " + roomId]);
+      });
+      socket.on("receive-message", (message: string, senderSocketId: string) => {
+        // Check if the sender is not the current user by comparing socket IDs
+        if (senderSocketId !== myChatSocketId) {
           setMessages(prevMessages => [...prevMessages, "Friend: " + message]);
         }
       });
@@ -102,7 +106,9 @@ export default function Room({ params }: { params: { roomId: string } }) {
 
 
   const initializeVideoConnections = async (roomId: number) => {
-    const newSocket = io(videoURL)
+    const newSocket = io(videoURL);
+    console.log("video socket id", newSocket );
+    setMyVideoSocketId(newSocket.id);
     const pc_config = {
       iceServers: [
         {
@@ -114,8 +120,9 @@ export default function Room({ params }: { params: { roomId: string } }) {
 
     newSocket.on("all_users", (allUsers: Array<{ id: string; email: string }>) => {
       // Ensure userId is a string and not undefined
-      const otherUsers = allUsers.filter(user => user.id !== userId); // Correctly filter out the current user
+      const otherUsers = allUsers.filter(user => user.id !== myVideoSocketId);
       console.log("otherUsers", otherUsers);
+      console.log(otherUsers[0].id, myVideoSocketId);
       let len = otherUsers.length;
       if (len > 0) {
         createOffer(newSocket, peerConnection);
@@ -137,7 +144,7 @@ export default function Room({ params }: { params: { roomId: string } }) {
         console.log("candidate add success");
       });
     });
-    initializeWebcam(roomId, newSocket, peerConnection)
+    initializeWebcam("private-" + roomId, newSocket, peerConnection)
   }
 // Corrected createOffer function with await
 const createOffer = async (videoSocket: Socket, peerConnection: RTCPeerConnection) => {
@@ -145,7 +152,7 @@ const createOffer = async (videoSocket: Socket, peerConnection: RTCPeerConnectio
     try {
       const sdp = await peerConnection.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
       await peerConnection.setLocalDescription(new RTCSessionDescription(sdp));
-      videoSocket.emit("offer", sdp);
+      videoSocket.emit("offer", sdp, "private-" + params.roomId);
     } catch (error) {
       console.error('Error creating offer:', error);
     }
@@ -163,7 +170,7 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
         offerToReceiveAudio: true,
       });
       await peerConnection.setLocalDescription(new RTCSessionDescription(answer));
-      videoSocket.emit("answer", answer);
+      videoSocket.emit("answer", answer, "private-" + params.roomId);
     } catch (error) {
       console.error('Error creating answer:', error);
     }
@@ -171,7 +178,7 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
 };
 
 
-  const initializeWebcam = async (roomId: number | undefined, videoSocket: Socket, peerConnection: RTCPeerConnection) => {
+  const initializeWebcam = async (roomId: string, videoSocket: Socket, peerConnection: RTCPeerConnection) => {
 
     if (peerConnection && videoSocket) {
       try {
@@ -191,7 +198,7 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
             peerConnection.onicecandidate = e => {
               if (e.candidate) {
                 console.log("onicecandidate");
-                videoSocket.emit("candidate", e.candidate);
+                videoSocket.emit("candidate", e.candidate, roomId);
               }
             };
             peerConnection.oniceconnectionstatechange = e => {
@@ -244,7 +251,7 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
     if (message.trim()) {
       setMessages([...messages, "You: " + message]);
       if (chatSocket) {
-        (chatSocket as Socket).emit('send-message', message);
+        (chatSocket as Socket).emit('send-message', message, "private-" + params.roomId);
       }
       setMessage('');
       // You can add code to send the message to the server or another user here
