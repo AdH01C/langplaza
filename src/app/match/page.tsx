@@ -6,7 +6,7 @@ import { MouseEventHandler, useEffect, useRef, useState } from 'react';
 import { useSpring, animated, config, useInView } from 'react-spring';
 import Header from '../components/Header';
 import { verify } from 'crypto';
-import { startChat } from '../utils/auth';
+import { startChat, startChatGQL } from '../utils/auth';
 import { io, Socket } from "socket.io-client";
 import LoadingSpinner from '../components/Loading';
 import { addRequest, hasSentRequest, isFriend } from '../utils/friends';
@@ -262,7 +262,7 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
     // join queue of the selected language
     // selectedLanguage --> "French"
     try{
-      const resp = await startChat(userId, selectedLanguage)
+      const resp = await startChatGQL(userId, selectedLanguage)
 
       if (resp.id && resp.id !== "" ){
         setChatStarted(true);

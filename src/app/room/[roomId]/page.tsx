@@ -6,7 +6,7 @@ import { MouseEventHandler, useEffect, useRef, useState } from 'react';
 import { useSpring, animated, config, useInView } from 'react-spring';
 import Header from '../../components/Header';
 import { verify } from 'crypto';
-import { startChat } from '../../utils/auth';
+import { startChatGQL } from '../../utils/auth';
 import LoadingSpinner from '../../components/Loading';
 import { addRequest, createPrivateRoom, hasSentRequest, isFriend } from '../../utils/friends';
 import { io, Socket } from "socket.io-client";

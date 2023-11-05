@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { fetchNotifications, logoutUser } from '../utils/auth';
+import { fetchNotifications, logoutUser, logoutUserGQL } from '../utils/auth';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FiBell, FiX } from 'react-icons/fi';
@@ -42,7 +42,7 @@ export default function Header() {
 
     const handleLogout = async () => {
         try {
-            await logoutUser();
+            await logoutUserGQL();
             setLoginToken(null);
             localStorage.clear();
             router.push('/'); // Using router object here
