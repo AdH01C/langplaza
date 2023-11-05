@@ -144,7 +144,7 @@ export default function Room({ params }: { params: { roomId: string } }) {
         console.log("candidate add success");
       });
     });
-    initializeWebcam(roomId, newSocket, peerConnection)
+    initializeWebcam("private-" + roomId, newSocket, peerConnection)
   }
 // Corrected createOffer function with await
 const createOffer = async (videoSocket: Socket, peerConnection: RTCPeerConnection) => {
@@ -152,7 +152,7 @@ const createOffer = async (videoSocket: Socket, peerConnection: RTCPeerConnectio
     try {
       const sdp = await peerConnection.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
       await peerConnection.setLocalDescription(new RTCSessionDescription(sdp));
-      videoSocket.emit("offer", sdp, myVideoSocketId);
+      videoSocket.emit("offer", sdp, "private-" + params.roomId);
     } catch (error) {
       console.error('Error creating offer:', error);
     }
@@ -170,7 +170,7 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
         offerToReceiveAudio: true,
       });
       await peerConnection.setLocalDescription(new RTCSessionDescription(answer));
-      videoSocket.emit("answer", answer);
+      videoSocket.emit("answer", answer, "private-" + params.roomId);
     } catch (error) {
       console.error('Error creating answer:', error);
     }
@@ -178,7 +178,7 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
 };
 
 
-  const initializeWebcam = async (roomId: number | undefined, videoSocket: Socket, peerConnection: RTCPeerConnection) => {
+  const initializeWebcam = async (roomId: string, videoSocket: Socket, peerConnection: RTCPeerConnection) => {
 
     if (peerConnection && videoSocket) {
       try {
@@ -198,7 +198,7 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
             peerConnection.onicecandidate = e => {
               if (e.candidate) {
                 console.log("onicecandidate");
-                videoSocket.emit("candidate", e.candidate);
+                videoSocket.emit("candidate", e.candidate, roomId);
               }
             };
             peerConnection.oniceconnectionstatechange = e => {
@@ -251,7 +251,7 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
     if (message.trim()) {
       setMessages([...messages, "You: " + message]);
       if (chatSocket) {
-        (chatSocket as Socket).emit('send-message', message, myChatSocketId);
+        (chatSocket as Socket).emit('send-message', message, "private-" + params.roomId);
       }
       setMessage('');
       // You can add code to send the message to the server or another user here
