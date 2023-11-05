@@ -47,6 +47,7 @@ export default function Room({ params }: { params: { roomId: string } }) {
         setMyChatSocketId(socket.id); // Store the user's socket ID
         setMessages(messages => [...messages, "You connected with id: " + roomId]);
       });
+      socket.emit("join-room", "private-" + roomId);
       socket.on("receive-message", (message: string, senderSocketId: string) => {
         // Check if the sender is not the current user by comparing socket IDs
         if (senderSocketId !== myChatSocketId) {
