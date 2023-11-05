@@ -43,8 +43,8 @@ export const FriendsList: React.FC<FriendsListProps> = ({ onInvite, selectedFrie
 
     getReceivedRequests(localStorage.getItem('user_id'))
     .then((friendRequests) => {
-      setFriendRequests(friendRequests);
-      console.log(friendRequests);
+      const pending = friendRequests.filter((req: { request_status: string; }) => req.request_status === "pending");
+      setFriendRequests(pending);
     })
     .catch((error) => {
       console.error('Get received requests error:', error);
@@ -61,7 +61,7 @@ export const FriendsList: React.FC<FriendsListProps> = ({ onInvite, selectedFrie
 
   const handleAcceptRequest = async (friendRequest: FriendRequest) => {
     const data = await updateRequestStatus(friendRequest.id, "accepted");
-    
+    console.log(data);
   };
 
   const handleInvite = () => {
@@ -105,7 +105,10 @@ export const FriendsList: React.FC<FriendsListProps> = ({ onInvite, selectedFrie
                 <span>{friend.user_name}</span>
                 <span>{friend.request_message}</span>
                 <div className="flex gap-4">
-                  <FiCheck className="cursor-pointer" />
+                  <FiCheck 
+                    className="cursor-pointer" 
+                    onClick={() => handleAcceptRequest(friend)}
+                  />
                   <FiX className="cursor-pointer" />
                 </div>
               </span>))

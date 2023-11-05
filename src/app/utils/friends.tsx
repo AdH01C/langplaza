@@ -174,7 +174,7 @@ export const getUser = async (userId: any) => {
 export const createPrivateRoom = async (friendId: any) => {
     try {
         const response = await axios.post(`${roomsUrl}/room/private`, {
-            "user1": 5,
+            "user1": localStorage.getItem('user_id'),
             "user2": friendId
         });
         if (response.status === 200) {

@@ -107,8 +107,29 @@ export default function Match() {
     if (tokenFromLocalStorage !== null && userIdFromLocalStorage !== null) {
       setLoading(false);
     }
-}, []);
 
+    const handleTabClose = () => {
+      // Call leaveChat when the tab is closed or refreshed
+      leaveChat();
+    };
+  
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        // Call leaveChat when the tab becomes invisible
+        leaveChat();
+      }
+    };
+  
+    // Add event listeners
+    window.addEventListener('beforeunload', handleTabClose);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+  
+    // Remove event listeners on cleanup
+    return () => {
+      window.removeEventListener('beforeunload', handleTabClose);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+}, []);
 
   const handleEnterPress = (e: { key: string; }) => {
     if (e.key === 'Enter') {
@@ -300,7 +321,6 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
     setMessages([]);
     setMessage('');
   }
-
 
   const handleAddFriend = () => {
     setIsModalOpen(true);

@@ -32,8 +32,8 @@ export default function Friends() {
 
   const handleInvite = async (selectedFriend: Friend | null, room: string) => {
     // Handle the invitation here
-    // You now have access to the selectedFriend here
-    const resp = await createPrivateRoom(selectedFriend?.id ?? '');
+    console.log('selectedFriend', selectedFriend?.id);
+    const resp = await createPrivateRoom(selectedFriend?.id);
 
     // Send the link to the user
     

@@ -8,10 +8,10 @@ import Header from '../../components/Header';
 import { verify } from 'crypto';
 import { startChat } from '../../utils/auth';
 import LoadingSpinner from '../../components/Loading';
-import { addRequest, hasSentRequest, isFriend } from '../../utils/friends';
+import { addRequest, createPrivateRoom, hasSentRequest, isFriend } from '../../utils/friends';
 import { io, Socket } from "socket.io-client";
 
-const videoURL = process.env.videoUrl;
+const videoURL = process.env.NEXT_PUBLIC_VIDEO_URL as string;
 
 export default function Room({ params }: { params: { roomId: string } }) {
     const [loading, setLoading] = useState(true);
@@ -22,27 +22,41 @@ export default function Room({ params }: { params: { roomId: string } }) {
   const [loginToken, setLoginToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [error, setError] = useState(null);
-  const [isCurrentlyFriend, setIsCurrentlyFriend] = useState(false);
-  const [hasAddedFriend, setHasAddedFriend] = useState(false);
+
   const [hasFailedMatching, setHasFailedMatching] = useState(false);
   const [hasFailedAddingFriend, setHasFailedAddingFriend] = useState(false);
-  const [friendError, setFriendError] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [friendRequestMessage, setFriendRequestMessage] = useState('');
-
 
   const [chatStarted, setChatStarted] = useState(false);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<string[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState('');
+  const [chatSocket, setChatSocket] = useState<object | null>(null);
 
-  const [otherUserID, setOtherUserID] = useState(6);
+  const [otherUserID, setOtherUserID] = useState();
   const [videoSocket, setVideoSocket] = useState<Socket>();
 
-  const [roomId, setRoomId] = useState<number>();
-  // const [peerConnection, setPeerConnection] = useState<RTCPeerConnection>();
-  // const [createOfferState, setCreateOffer] = useState<boolean>();
-  // const []
+  
+  // Socket.IO implementation - Client
+  const initializeChat = async (roomId: number) => {
+    try {
+      const socket = io(process.env.NEXT_PUBLIC_CHAT_URL as string);
+      
+      socket.on("connect", () => {
+        setMessages([...messages, "You connected with id: " + roomId]);
+      })
+      socket.on("receive-message", (message: string, senderId: string) => {
+        if (senderId !== userId) { // Check if the sender is not the current user
+          setMessages(prevMessages => [...prevMessages, "Friend: " + message]);
+        }
+      });
+      
+      setChatSocket(socket);
+    } catch (error) {
+      console.error("Error accessing the chat:", error);
+    }
+  };
+
+  
   useEffect(() => {
     const tokenFromLocalStorage = localStorage.getItem('token');
     const userIdFromLocalStorage = localStorage.getItem('user_id');
@@ -55,25 +69,42 @@ export default function Room({ params }: { params: { roomId: string } }) {
     }
 
     handleStartChat();
-    }, []);
 
-  // useEffect(() => {
-  //   initializeWebcam(roomId);
-  // }, [videoSocket, peerConnection, roomId])
+    const handleTabClose = () => {
+      // Call leaveChat when the tab is closed or refreshed
+      leaveChat();
+    };
+  
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        // Call leaveChat when the tab becomes invisible
+        leaveChat();
+      }
+    };
+  
+    // Add event listeners
+    window.addEventListener('beforeunload', handleTabClose);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+  
+    // Remove event listeners on cleanup
+    return () => {
+      window.removeEventListener('beforeunload', handleTabClose);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+}, []);
+
+
   const handleEnterPress = (e: { key: string; }) => {
     if (e.key === 'Enter') {
       handleSendMessage();
     }
   };
+
+
   const initializeVideoConnections = async (roomId: number) => {
-    const newSocket = io(videoURL as string);
+    const newSocket = io(videoURL)
     const pc_config = {
       iceServers: [
-        // {
-        //   urls: 'stun:[STUN_IP]:[PORT]',
-        //   'credentials': '[YOR CREDENTIALS]',
-        //   'username': '[USERNAME]'
-        // },
         {
           urls: "stun:stun.l.google.com:19302",
         },
@@ -82,14 +113,16 @@ export default function Room({ params }: { params: { roomId: string } }) {
     let peerConnection = new RTCPeerConnection(pc_config);
 
     newSocket.on("all_users", (allUsers: Array<{ id: string; email: string }>) => {
-      let len = allUsers.length;
+      // Ensure userId is a string and not undefined
+      const otherUsers = allUsers.filter(user => user.id !== userId); // Correctly filter out the current user
+      console.log("otherUsers", otherUsers);
+      let len = otherUsers.length;
       if (len > 0) {
         createOffer(newSocket, peerConnection);
       }
     });
 
     newSocket.on("getOffer", (sdp: RTCSessionDescription) => {
-      //console.log(sdp);
       console.log("get offer");
       createAnswer(sdp, newSocket, peerConnection);
     });
@@ -97,7 +130,6 @@ export default function Room({ params }: { params: { roomId: string } }) {
     newSocket.on("getAnswer", (sdp: RTCSessionDescription) => {
       console.log("get answer");
       peerConnection.setRemoteDescription(new RTCSessionDescription(sdp));
-      //console.log(sdp);
     });
 
     newSocket.on("getCandidate", (candidate: RTCIceCandidateInit) => {
@@ -105,46 +137,39 @@ export default function Room({ params }: { params: { roomId: string } }) {
         console.log("candidate add success");
       });
     });
-
-    // setVideoSocket(newSocket);
-    // setPeerConnection(peerConnection);
     initializeWebcam(roomId, newSocket, peerConnection)
   }
-  const createOffer = (videoSocket: Socket, peerConnection: RTCPeerConnection,) => {
-    if (peerConnection && videoSocket) {
+// Corrected createOffer function with await
+const createOffer = async (videoSocket: Socket, peerConnection: RTCPeerConnection) => {
+  if (peerConnection && videoSocket) {
+    try {
+      const sdp = await peerConnection.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
+      await peerConnection.setLocalDescription(new RTCSessionDescription(sdp));
+      videoSocket.emit("offer", sdp);
+    } catch (error) {
+      console.error('Error creating offer:', error);
+    }
+  }
+};
 
-      peerConnection
-        .createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true })
-        .then(sdp => {
-          peerConnection.setLocalDescription(new RTCSessionDescription(sdp));
-          videoSocket.emit("offer", sdp);
-        })
-        .catch(error => {
-          console.log(error);
-        });
-    }
-  };
-  
-  const createAnswer = (sdp: RTCSessionDescription, videoSocket: Socket, peerConnection: RTCPeerConnection) => {
-    if (peerConnection && videoSocket) {
-      peerConnection.setRemoteDescription(new RTCSessionDescription(sdp)).then(() => {
-        console.log("answer set remote description success");
-        peerConnection
-          .createAnswer({
-            offerToReceiveVideo: true,
-            offerToReceiveAudio: true,
-          })
-          .then(sdp1 => {
-            console.log("create answer");
-            peerConnection.setLocalDescription(new RTCSessionDescription(sdp1));
-            videoSocket.emit("answer", sdp1);
-          })
-          .catch(error => {
-            console.log(error);
-          });
+// Corrected createAnswer function with await
+const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, peerConnection: RTCPeerConnection) => {
+  if (peerConnection && videoSocket) {
+    try {
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(sdp));
+      console.log("answer set remote description success");
+      const answer = await peerConnection.createAnswer({
+        offerToReceiveVideo: true,
+        offerToReceiveAudio: true,
       });
+      await peerConnection.setLocalDescription(new RTCSessionDescription(answer));
+      videoSocket.emit("answer", answer);
+    } catch (error) {
+      console.error('Error creating answer:', error);
     }
-  };
+  }
+};
+
 
   const initializeWebcam = async (roomId: number | undefined, videoSocket: Socket, peerConnection: RTCPeerConnection) => {
 
@@ -156,8 +181,10 @@ export default function Room({ params }: { params: { roomId: string } }) {
             audio: true,
           })
           .then(stream => {
-            if (localVideoRef.current) localVideoRef.current.srcObject = stream;
-
+            if (localVideoRef.current) {
+              localVideoRef.current.srcObject = stream;
+              localVideoRef.current.muted = true;
+            }
             stream.getTracks().forEach(track => {
               peerConnection.addTrack(track, stream);
             });
@@ -190,11 +217,9 @@ export default function Room({ params }: { params: { roomId: string } }) {
 
   const handleStartChat = async() => {
     try{
-        
-        // await initializeVideoConnections(resp.id);
-        // setOtherUserID();
-      
-    } catch (error: any) {
+        initializeChat(parseInt(params.roomId));
+        await initializeVideoConnections(parseInt(params.roomId));
+      } catch (error: any) {
       console.error("Error starting chat:", error);
       setHasFailedMatching(true);
       setError(error);
@@ -218,6 +243,9 @@ export default function Room({ params }: { params: { roomId: string } }) {
   const handleSendMessage = () => {
     if (message.trim()) {
       setMessages([...messages, "You: " + message]);
+      if (chatSocket) {
+        (chatSocket as Socket).emit('send-message', message);
+      }
       setMessage('');
       // You can add code to send the message to the server or another user here
     }
@@ -228,7 +256,7 @@ export default function Room({ params }: { params: { roomId: string } }) {
     setChatStarted(false);
     setMessages([]);
     setMessage('');
-  }
+  };
 
   return (
     <div className="flex flex-col w-screen min-h-screen bg-white overflow-hidden">
@@ -246,49 +274,19 @@ export default function Room({ params }: { params: { roomId: string } }) {
                   <div className="flex flex-col items-center p-4 border rounded-md">
                     <div className="w-full h-56 bg-gray-300 mb-2">
                       {/* Something */}
-                          <video ref={remoteVideoRef} autoPlay playsInline></video>
-
+                          <video ref={remoteVideoRef} className='w-full h-full bg-white' autoPlay playsInline></video>
                     </div>
                     <span className="text-black">Other participant</span>
                   </div>
     
                   {/* Video Call Card 2 */}
                   <div className="flex flex-col items-center p-4 border rounded-md">
-                    <div className="h-full bg-gray-300 mb-2">
-                          <video ref={localVideoRef} autoPlay playsInline></video>
+                    <div className="w-full h-56 bg-gray-300 mb-2">
+                          <video ref={localVideoRef} className='w-full h-full bg-white' autoPlay playsInline></video>
                     </div>
                     <span className="text-black">You</span>
                   </div>
 
-                  <div className="flex justify-center gap-4 mt-4">
-                  {/* Leave and add friend */}
-                  {chatStarted ? (
-                    isCurrentlyFriend ? (
-                      <></> // Don't render any button when isCurrentlyFriend is true
-                    ) : (
-                      hasAddedFriend ? (
-                        <button
-                          className="px-4 py-2 mb-4 text-white bg-gray-600 rounded-md"
-                        >
-                          Requested
-                        </button>
-                      ) : (
-                        <button
-                          className="px-4 py-2 mb-4 text-white bg-primary rounded-md hover-bg-secondary"
-                          onClick={() => {}}
-                        >
-                          Add Friend
-                        </button>
-                      )
-                    )
-                  ) : (
-                    <></>
-                  )}
-
-                    <button onClick={() => leaveChat()} className="px-4 py-2 mb-4 text-white bg-red-600 rounded-md hover:bg-red-800">
-                      Leave Chat
-                    </button>
-                  </div>
                 </div>
               </div>
     
@@ -317,11 +315,12 @@ export default function Room({ params }: { params: { roomId: string } }) {
                 </div>
               </div>
             </div>
-        ) : (
+          )
+         : (
           <h1 className="text-4xl font-bold text-center text-black mt-64">Please log in to access this page.</h1>
         )
       )}
     </div>
   );
-
+  
 }

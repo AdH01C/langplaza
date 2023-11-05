@@ -87,10 +87,12 @@ export default function Header() {
                                 </div>
                                 {notifications.length > 0 ? (
                                     notifications.map((notification) => (
-                                        <div key={notification.request_id + notification.user_id + notification.request_status} className="flex flex-col">
-                                            <p className="text-base font-medium text-gray-500">Friend Request ID: {notification.user_id}</p>
-                                            <p className="text-sm leading-6 text-gray-900">Message: {notification.request_message} Status: {notification.request_status}</p>
-                                        </div>
+                                        notification.request_status === "pending" ? (
+                                            <div key={notification.request_id + notification.user_id + notification.request_status} className="flex flex-col">
+                                                <p className="text-base font-medium text-gray-500">Friend Request ID: {notification.user_id}</p>
+                                                <p className="text-sm leading-6 text-gray-900">Message: {notification.request_message} Status: {notification.request_status}</p>
+                                            </div>
+                                        ) : null
                                     ))
                                 ) : (
                                     <p className="text-sm leading-6 text-gray-900">No notifications</p>
