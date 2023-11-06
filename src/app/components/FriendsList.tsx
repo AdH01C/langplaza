@@ -3,7 +3,7 @@
 import { get } from 'http';
 import React, { useState, useEffect } from 'react';
 import { FiCheck, FiX } from 'react-icons/fi';
-import { getAllFriends, getReceivedRequests, updateRequestStatus } from '../utils/friends';
+import { getAllFriendsGQL, getReceivedRequestsGQL, updateRequestStatusGQL } from '../utils/friends';
 
 export type Friend = {
   id: string;
@@ -33,7 +33,7 @@ export const FriendsList: React.FC<FriendsListProps> = ({ onInvite, selectedFrie
   const [room, setRoom] = useState<string>('');
 
   useEffect(() => {
-    getAllFriends(localStorage.getItem('user_id'))
+    getAllFriendsGQL(localStorage.getItem('user_id'))
       .then((friends) => {
         setFriends(friends);
       })
@@ -41,7 +41,7 @@ export const FriendsList: React.FC<FriendsListProps> = ({ onInvite, selectedFrie
         console.error('Get all friends error:', error);
       });
 
-    getReceivedRequests(localStorage.getItem('user_id'))
+    getReceivedRequestsGQL(localStorage.getItem('user_id'))
     .then((friendRequests) => {
       const pending = friendRequests.filter((req: { request_status: string; }) => req.request_status === "pending");
       setFriendRequests(pending);
@@ -60,7 +60,7 @@ export const FriendsList: React.FC<FriendsListProps> = ({ onInvite, selectedFrie
   };
 
   const handleAcceptRequest = async (friendRequest: FriendRequest) => {
-    const data = await updateRequestStatus(friendRequest.id, "accepted");
+    const data = await updateRequestStatusGQL(friendRequest.id, "accepted");
     console.log(data);
   };
 

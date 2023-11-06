@@ -6,10 +6,10 @@ import { MouseEventHandler, useEffect, useRef, useState } from 'react';
 import { useSpring, animated, config, useInView } from 'react-spring';
 import Header from '../components/Header';
 import { verify } from 'crypto';
-import { startChat, startChatGQL } from '../utils/auth';
+import { startChatGQL } from '../utils/auth';
 import { io, Socket } from "socket.io-client";
 import LoadingSpinner from '../components/Loading';
-import { addRequest, hasSentRequest, isFriend } from '../utils/friends';
+import { addRequestGQL, hasSentRequest, isFriend } from '../utils/friends';
 
 type FriendRequestModalProps = {
   isOpen: boolean;
@@ -71,6 +71,8 @@ export default function Match() {
   const [selectedLanguage, setSelectedLanguage] = useState('');
   const [chatSocket, setChatSocket] = useState<object | null>(null);
 
+
+  // PLEASE UPDATE HERE
   const [otherUserID, setOtherUserID] = useState(6);
   const [videoSocket, setVideoSocket] = useState<Socket>();
 
@@ -152,9 +154,10 @@ export default function Match() {
     };
     let peerConnection = new RTCPeerConnection(pc_config);
 
-    newSocket.on("all_users", (allUsers: Array<{ id: string; email: string }>) => {
+    newSocket.on("all_users", (allUsers: Array<{ id: string; user: string }>) => {
       let len = allUsers.length;
       if (len > 0) {
+        // PLEASE SET OTHER USER ID
         createOffer(newSocket, peerConnection);
       }
     });
@@ -280,7 +283,7 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
           setHasAddedFriend(true);
         }
         await initializeVideoConnections(resp.id);
-        // setOtherUserID();
+        setOtherUserID(resp.other_user_id);
       }
     } catch (error: any) {
       console.error("Error starting chat:", error);
@@ -328,7 +331,7 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
   
   const handleFriendRequest = async () => { 
     try {
-      await addRequest(userId, otherUserID, friendRequestMessage);
+      await addRequestGQL(userId, otherUserID, friendRequestMessage, "pending");
       setHasAddedFriend(true);
     } catch (error) {
       setMessages([...messages, "Error adding friend: " + error]);

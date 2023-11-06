@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import Header from '../components/Header';
 import FadeInFromLeft from '../components/FadeInFromLeft';
-import { signUpUser } from '../utils/auth'; // Adjust the import path as needed
+import { signUpUserGQL } from '../utils/auth'; // Adjust the import path as needed
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -21,7 +21,7 @@ export default function SignUp() {
       password2: data.get('password2'), // add password2 field
     };
     try {
-      const result = await signUpUser(user.email, user.name, user.password1, user.password2); // pass all 4 arguments
+      const result = await signUpUserGQL(user.email, user.name, user.password1, user.password2); // pass all 4 arguments
       router.push('/login');
 
     } catch (error : any) {

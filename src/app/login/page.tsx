@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import Header from '../components/Header';
 import FadeInFromLeft from '../components/FadeInFromLeft';
-import { loginUser, loginUserGQL } from '../utils/auth';
+import { loginUserGQL } from '../utils/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 

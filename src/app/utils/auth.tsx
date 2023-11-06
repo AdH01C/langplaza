@@ -146,24 +146,24 @@ export const logoutUserGQL = async () => {
   }
 }
 
-export const startChat = async (userId: any, language: any) => {
-  try {
-    const response = await axios.post(roomsUrl + '/room/start', {
-        "user": userId,
-        "language": language
-    });
+// export const startChat = async (userId: any, language: any) => {
+//   try {
+//     const response = await axios.post(roomsUrl + '/room/start', {
+//         "user": userId,
+//         "language": language
+//     });
 
-    if (response.status >= 200 && response.status < 300) {
-      return response.data; // Adjust this based on your backend's response
-    } else {
-      throw new Error(response.data.message);
-    }
+//     if (response.status >= 200 && response.status < 300) {
+//       return response.data; // Adjust this based on your backend's response
+//     } else {
+//       throw new Error(response.data.message);
+//     }
 
-  } catch (error) {
-    console.error('Start chat room error:', error);
-    throw error;
-  }
-};
+//   } catch (error) {
+//     console.error('Start chat room error:', error);
+//     throw error;
+//   }
+// };
 
 export const startChatGQL = async (userId: any, language: any) => {
   try {
@@ -201,27 +201,60 @@ export const startChatGQL = async (userId: any, language: any) => {
   }
 }
 
-export const signUpUser = async (email: any, name: any, password1: any, password2: any) => {
+// export const signUpUser = async (email: any, name: any, password1: any, password2: any) => {
+//   try {
+//     const response = await axios.post(authUrl + '/sign-up', {
+//       email: email,
+//       name: name,
+//       password1: password1,
+//       password2: password2,
+//       verified: 0,
+//     });
+
+//     if (response.status >= 200 && response.status < 300) {
+//       return response.data;
+//     } else {
+//       throw new Error(response.data.message);
+//     }
+
+//   } catch (error) {
+//     console.error('Sign-up error:', error);
+//     throw error;
+//   }
+// };
+
+export const signUpUserGQL = async (email: any, name: any, password1: any, password2: any) => {
   try {
-    const response = await axios.post(authUrl + '/sign-up', {
-      email: email,
-      name: name,
-      password1: password1,
-      password2: password2,
-      verified: 0,
+    const SIGNUP_MUTATION = `{
+        signup(email: "${email}", name: "${name}", password1: "${password1}", password2: "${password2}") {
+          message
+          status
+        }
+      }
+    `;
+
+    const graphqlQuery = {
+      query: SIGNUP_MUTATION,
+    };
+
+    const response = await axios.post(graphqlUrl, {
+      query: graphqlQuery.query
+    }, {
+      headers: { 'Content-Type': 'application/json' },
     });
 
     if (response.status >= 200 && response.status < 300) {
-      return response.data;
+      const { signup } = response.data.data;
+      console.log('Sign-up response:', signup);
+      return signup;
     } else {
-      throw new Error(response.data.message);
+      throw new Error(`Received status code ${response.status}`);
     }
-
   } catch (error) {
     console.error('Sign-up error:', error);
     throw error;
   }
-};
+}
 
 export const fetchNotifications = async () => {
   try {

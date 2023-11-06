@@ -6,7 +6,7 @@ import { Friend, FriendsList } from '../components/FriendsList';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '../components/Loading';
 import axios from 'axios';
-import { createPrivateRoom } from '../utils/friends';
+import { createPrivateRoomGQL } from '../utils/friends';
 
 export default function Friends() {
   const [loginToken, setLoginToken] = useState<string | null>(null);    
@@ -33,7 +33,7 @@ export default function Friends() {
   const handleInvite = async (selectedFriend: Friend | null, room: string) => {
     // Handle the invitation here
     console.log('selectedFriend', selectedFriend?.id);
-    const resp = await createPrivateRoom(selectedFriend?.id);
+    const resp = await createPrivateRoomGQL(selectedFriend?.id);
 
     // Send the link to the user
     

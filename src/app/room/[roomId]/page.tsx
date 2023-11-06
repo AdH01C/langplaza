@@ -8,7 +8,6 @@ import Header from '../../components/Header';
 import { verify } from 'crypto';
 import { startChatGQL } from '../../utils/auth';
 import LoadingSpinner from '../../components/Loading';
-import { addRequest, createPrivateRoom, hasSentRequest, isFriend } from '../../utils/friends';
 import { io, Socket } from "socket.io-client";
 
 const videoURL = process.env.NEXT_PUBLIC_VIDEO_URL as string;
@@ -267,7 +266,7 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
 
   const leaveChat = () => {
     stopWebcam();
-    setChatStarted(false);
+    setChatStarted(0);
     setMessages([]);
     setMessage('');
   };
