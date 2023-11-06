@@ -84,7 +84,10 @@ export default function Match() {
       socket.on("connect", () => {
         setMessages([...messages, "You connected with id: " + roomId]);
       })
-      socket.emit("join-room", roomId);
+      socket.emit("join", {
+        roomId,
+        userId: localStorage.getItem('user_id'),
+      });
       socket.on("receive-message", (message: string) => {
         setMessages(prevMessages => [...prevMessages, "Friend: " + message]);
       })

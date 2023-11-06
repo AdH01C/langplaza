@@ -6,7 +6,7 @@ import { Friend, FriendsList } from '../components/FriendsList';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '../components/Loading';
 import axios from 'axios';
-import { createPrivateRoomGQL } from '../utils/friends';
+import { createPrivateRoomGQL, addMessageGQL, getMessagesByUsersGQL } from '../utils/friends';
 
 export default function Friends() {
   const [loginToken, setLoginToken] = useState<string | null>(null);    
@@ -43,13 +43,14 @@ export default function Friends() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<{ [friendId: string]: string[] }>({});
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (message.trim() && selectedFriend) {
       const friendMessages = messages[selectedFriend.id] || [];
       setMessages({
         ...messages,
         [selectedFriend.id]: [...friendMessages, "You: " + message],
       });
+      await addMessageGQL(localStorage.getItem("user_id"), selectedFriend.id, message);
       setMessage('');
       // You can add code to send the message to the server or another user here
     }
