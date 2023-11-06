@@ -30,6 +30,20 @@ export default function Friends() {
 
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
 
+  useEffect(() => {
+    if (selectedFriend == null) {
+      return;
+    }
+    initializeChat(selectedFriend);
+  }, [selectedFriend]);
+
+  const initializeChat = async (selectedFriend: Friend) => {
+    const resp1 = await getMessagesByUsersGQL(localStorage.getItem("name"), selectedFriend?.name);
+    const resp2 = await getMessagesByUsersGQL(selectedFriend?.name, localStorage.getItem("name"),);
+    console.log(resp1);
+    console.log(resp2);
+  };
+
   const handleInvite = async (selectedFriend: Friend | null, room: string) => {
     // Handle the invitation here
     console.log('selectedFriend', selectedFriend?.id);
