@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { fetchNotifications, logoutUserGQL } from '../utils/auth';
+import { fetchNotifications, fetchNotificationsGQL, logoutUserGQL } from '../utils/auth';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FiBell, FiX } from 'react-icons/fi';
@@ -29,7 +29,7 @@ export default function Header() {
             : null
         );
 
-        const data = fetchNotifications();
+        const data = fetchNotificationsGQL();
         data.then((res) => {
             // setNotifications(res.data.data);
             if (res && res[0]) {

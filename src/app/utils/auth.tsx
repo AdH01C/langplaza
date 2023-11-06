@@ -256,16 +256,46 @@ export const signUpUserGQL = async (email: any, name: any, password1: any, passw
   }
 }
 
-export const fetchNotifications = async () => {
+// export const fetchNotifications = async () => {
+//   try {
+//     const response = await axios.get(notificationsUrl + '/notifications/' + localStorage.getItem('email'));
+
+//     if (response.status >= 200 && response.status < 300) {
+//       return response.data;
+//     } else {
+//       throw new Error(response.data.message);
+//     }
+
+//   } catch (error) {
+//     console.error('Fetch notifications error:', error);
+//     throw error;
+//   }
+// }
+
+export const fetchNotificationsGQL = async () => { 
   try {
-    const response = await axios.get(notificationsUrl + '/notifications/' + localStorage.getItem('email'));
+    const FETCH_NOTIFICATIONS_MUTATION = `{
+        getNotification(email: "${localStorage.getItem('email')}")
+      }
+    `;
+
+    const graphqlQuery = {
+      query: FETCH_NOTIFICATIONS_MUTATION,
+    };
+
+    const response = await axios.post(graphqlUrl, {
+      query: graphqlQuery.query
+    }, {
+      headers: { 'Content-Type': 'application/json' },
+    });
 
     if (response.status >= 200 && response.status < 300) {
-      return response.data;
+      const { getNotification } = response.data.data;
+      console.log('Fetch notifications response:', getNotification);
+      return getNotification;
     } else {
-      throw new Error(response.data.message);
+      throw new Error(`Received status code ${response.status}`);
     }
-
   } catch (error) {
     console.error('Fetch notifications error:', error);
     throw error;

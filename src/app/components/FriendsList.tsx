@@ -75,7 +75,7 @@ export const FriendsList: React.FC<FriendsListProps> = ({ onInvite, selectedFrie
     <div className="flex flex-col gap-4 text-black">
       <a className='text-3xl'>Select Friends</a>
       <div className="flex flex-col gap-4 w-full"> 
-        {friends.map(friend => (
+        {friends && friends.map(friend => (
           <div 
             key={friend.id + friend.name}
             onClick={() => handleSelectFriend(friend)}

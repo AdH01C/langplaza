@@ -355,19 +355,19 @@ export const hasSentRequest = async (userId: any, friendId: any) => {
     }
 }
 
-export const getUser = async (userId: any) => {
-    try {
-        const response = await axios.get(`${authUrl}/user/${userId}`);
-        if (response.status === 200) {
-            return response.data.data;
-        } else {
-            throw new Error(response.data.message);
-        }
-    } catch (error) {
-        console.error('Get user error:', error);
-        throw error;
-    }
-}
+// export const getUser = async (userId: any) => {
+//     try {
+//         const response = await axios.get(`${authUrl}/user/${userId}`);
+//         if (response.status === 200) {
+//             return response.data.data;
+//         } else {
+//             throw new Error(response.data.message);
+//         }
+//     } catch (error) {
+//         console.error('Get user error:', error);
+//         throw error;
+//     }
+// }
 
 // export const createPrivateRoom = async (friendId: any) => {
 //     try {
@@ -389,7 +389,7 @@ export const getUser = async (userId: any) => {
 export const createPrivateRoomGQL = async (friendId: any) => {
   try {
     const CREATE_PRIVATE_ROOM_MUTATION = `{
-        privateRoom(user1: ${localStorage.getItem('user_id')}, user2: ${friendId}) {
+        privateRoom(user1: "${localStorage.getItem('user_id')}", user2: "${friendId}") {
           id
         }
       }
