@@ -6,7 +6,7 @@ import { Friend, FriendsList } from '../components/FriendsList';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '../components/Loading';
 import axios from 'axios';
-import { createPrivateRoomGQL } from '../utils/friends';
+import { createPrivateRoomGQL, addMessageGQL, getMessagesByUsersGQL } from '../utils/friends';
 
 export default function Friends() {
   const [loginToken, setLoginToken] = useState<string | null>(null);    
@@ -30,6 +30,20 @@ export default function Friends() {
 
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
 
+  useEffect(() => {
+    if (selectedFriend == null) {
+      return;
+    }
+    initializeChat(selectedFriend);
+  }, [selectedFriend]);
+
+  const initializeChat = async (selectedFriend: Friend) => {
+    const resp1 = await getMessagesByUsersGQL(localStorage.getItem("name"), selectedFriend?.name);
+    const resp2 = await getMessagesByUsersGQL(selectedFriend?.name, localStorage.getItem("name"),);
+    console.log(resp1);
+    console.log(resp2);
+  };
+
   const handleInvite = async (selectedFriend: Friend | null, room: string) => {
     // Handle the invitation here
     console.log('selectedFriend', selectedFriend?.id);
@@ -43,13 +57,14 @@ export default function Friends() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<{ [friendId: string]: string[] }>({});
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (message.trim() && selectedFriend) {
       const friendMessages = messages[selectedFriend.id] || [];
       setMessages({
         ...messages,
         [selectedFriend.id]: [...friendMessages, "You: " + message],
       });
+      await addMessageGQL(localStorage.getItem("user_id"), selectedFriend.id, message);
       setMessage('');
       // You can add code to send the message to the server or another user here
     }

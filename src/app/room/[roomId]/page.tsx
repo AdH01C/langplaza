@@ -38,7 +38,7 @@ export default function Room({ params }: { params: { roomId: string } }) {
 
   
   // Socket.IO implementation - Client
-  const initializeChat = async (roomId: number) => {
+  const initializeChat = async (roomId: string) => {
     try {
       const socket = io(process.env.NEXT_PUBLIC_CHAT_URL as string);
       
@@ -46,7 +46,10 @@ export default function Room({ params }: { params: { roomId: string } }) {
         setMyChatSocketId(socket.id); // Store the user's socket ID
         setMessages(messages => [...messages, "You connected with id: " + roomId]);
       });
-      socket.emit("join-room", "private-" + roomId);
+      socket.emit("join", {
+        roomId,
+        userId: localStorage.getItem('user_id'),
+      });
       socket.on("receive-message", (message: string, senderSocketId: string) => {
         // Check if the sender is not the current user by comparing socket IDs
         if (senderSocketId !== myChatSocketId) {
@@ -230,7 +233,7 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
 
   const handleStartChat = async() => {
     try{
-        initializeChat(parseInt(params.roomId));
+        initializeChat("private-" + parseInt(params.roomId));
         await initializeVideoConnections(parseInt(params.roomId));
       } catch (error: any) {
       console.error("Error starting chat:", error);
