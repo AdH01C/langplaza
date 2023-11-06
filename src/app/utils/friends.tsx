@@ -261,8 +261,14 @@ export const getReceivedRequestsGQL = async (userId: any) => {
 
 export const addRequestGQL = async (user_id :string |  null, target_user_id: number, friendRequestMessage: string, request_status: string) => {
   try {
+    const msg = friendRequestMessage.replace(/\n/g,' ');
+
+    console.log(msg);
     const ADD_REQUEST_MUTATION = `{
-        addRequest(token: "${token}", target_user_id: ${target_user_id}, id: ${user_id}, request_message: "${friendRequestMessage}", request_status: "${request_status}, request_type: "friend_request") {
+        addRequest(token: "${token}", 
+        target_user_id: ${target_user_id}, 
+        id: ${user_id}, request_message: "${msg}", 
+        request_status: "${request_status}", request_type: "friend_request")
       }
     `;
 

@@ -166,6 +166,9 @@ export default function Match() {
     newSocket.on("all_users", (allUsers: Array<{ id: string; user: string }>) => {
       let len = allUsers.length;
       if (len > 0) {
+        const otherUserId = allUsers.filter((user) => user.user !== localStorage.getItem('user_id'))[0].user;
+        console.log("other user id: ", otherUserId)
+        setOtherUserID(parseInt(otherUserId));
         newSocket.emit('joined', { allUsers })
         createOffer(newSocket, peerConnection);
       }
@@ -173,22 +176,31 @@ export default function Match() {
 
     newSocket.on("other-join", (allUsers: Array<{ id: string; user: string }>) => {
       if (allUsers.length > 0) {
-        //set state user
-        const otherUserId = allUsers[0].user;
+        console.log("all users ", allUsers);
+        const otherUserId = allUsers.filter((user) => user.user !== localStorage.getItem('user_id'))[0].user;
         console.log("other user id: ", otherUserId)
-        setOtherUserID(Number(otherUserId));
+        setOtherUserID(parseInt(otherUserId));
       }
+      // if (allUsers.length > 0) {
+      //   //set state user
+      //   console.log("all users: ", allUsers);
+      //   const otherUserId = allUsers[0].user;
+      //   console.log("other user id: ", otherUserId)
+      //   setOtherUserID(parseInt(otherUserId));
+      // }
     });
 
     newSocket.on("getOffer", (sdp: RTCSessionDescription) => {
       //console.log(sdp);
-      console.log("get offer");
+      console.log("get offer ", sdp);
       createAnswer(sdp, newSocket, peerConnection);
     });
 
     newSocket.on("getAnswer", (sdp: RTCSessionDescription) => {
-      console.log("get answer");
-      peerConnection.setRemoteDescription(new RTCSessionDescription(sdp));
+      console.log("get answer ", sdp);
+      console.log("*", peerConnection.connectionState);
+      if (peerConnection)
+        peerConnection.setRemoteDescription(new RTCSessionDescription(sdp));
       //console.log(sdp);
     });
 
@@ -225,8 +237,10 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
         offerToReceiveVideo: true,
         offerToReceiveAudio: true,
       });
+      console.log(peerConnection.connectionState);
       await peerConnection.setLocalDescription(new RTCSessionDescription(answer));
       videoSocket.emit("answer", answer);
+      
     } catch (error) {
       console.error('Error creating answer:', error);
     }
@@ -337,7 +351,16 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
   };
 
   const leaveChat = () => {
+    window.location.reload();
     stopWebcam();
+    if (chatSocket) {
+      (chatSocket as Socket).disconnect();
+    }
+    if (videoSocket) {
+      videoSocket.disconnect();
+    }
+    setChatSocket(null);
+    setVideoSocket(undefined);
     setChatStarted(false);
     setMessages([]);
     setMessage('');
