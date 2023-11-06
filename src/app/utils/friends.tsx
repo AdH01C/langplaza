@@ -262,7 +262,7 @@ export const getReceivedRequestsGQL = async (userId: any) => {
 export const addRequestGQL = async (user_id :string |  null, target_user_id: number, friendRequestMessage: string, request_status: string) => {
   try {
     const ADD_REQUEST_MUTATION = `{
-        addRequest(token: "${token}", target_user_id: ${target_user_id}, id: ${user_id}, request_message: "${friendRequestMessage}", request_status: "${request_status}")
+        addRequest(token: "${token}", target_user_id: ${target_user_id}, id: ${user_id}, request_message: "${friendRequestMessage}", request_status: "${request_status}, request_type: "friend_request") {
       }
     `;
 
@@ -341,7 +341,13 @@ export const isFriend = async (userId: any, friendId: any) => {
         if (allFriends === null) {
           return false;
         }
-        return allFriends.includes(friendId);
+        try {
+          const all = allFriends.includes(friendId); 
+          return all;
+        }
+        catch (error) {
+          console.log(error);
+        }
     } catch (error) {
         console.error('Check if friend error:', error);
         throw error;
@@ -351,7 +357,16 @@ export const isFriend = async (userId: any, friendId: any) => {
 export const hasSentRequest = async (userId: any, friendId: any) => {
     try{
         const sentRequests = await getSentRequestsGQL(userId);
-        return sentRequests.includes(friendId);
+        if (sentRequests === null) {
+          return false;
+        }
+        try {
+          const all = sentRequests.includes(friendId); 
+          return all;
+        } catch (error) {
+          console.log(error);
+        }
+        
     } catch (error) {
         console.error('Check if sent request error:', error);
         throw error;

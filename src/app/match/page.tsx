@@ -60,7 +60,7 @@ export default function Match() {
   const [hasAddedFriend, setHasAddedFriend] = useState(false);
   const [hasFailedMatching, setHasFailedMatching] = useState(false);
   const [hasFailedAddingFriend, setHasFailedAddingFriend] = useState(false);
-  const [friendError, setFriendError] = useState(null);
+  const [friendError, setFriendError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [friendRequestMessage, setFriendRequestMessage] = useState('');
 
@@ -175,6 +175,7 @@ export default function Match() {
       if (allUsers.length > 0) {
         //set state user
         const otherUserId = allUsers[0].user;
+        console.log("other user id: ", otherUserId)
         setOtherUserID(Number(otherUserId));
       }
     });
@@ -349,8 +350,15 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
   
   const handleFriendRequest = async () => { 
     try {
-      await addRequestGQL(userId, otherUserID, friendRequestMessage, "pending");
-      setHasAddedFriend(true);
+      if (userId !== null && otherUserID !== 0) {
+        await addRequestGQL(userId, otherUserID, friendRequestMessage, "pending");
+        setHasAddedFriend(true);
+      } else {
+        console.log("Error adding friend: ");
+        console.log("User ID: ", userId);
+        console.log("Other User ID: ", otherUserID);
+      }
+      
     } catch (error) {
       setMessages([...messages, "Error adding friend: " + error]);
       setHasFailedAddingFriend(true);

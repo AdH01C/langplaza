@@ -1,9 +1,10 @@
 "use client"
 
 import { get } from 'http';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { FiCheck, FiX } from 'react-icons/fi';
 import { getAllFriendsGQL, getReceivedRequestsGQL, updateRequestStatusGQL } from '../utils/friends';
+import { useRouter } from 'next/navigation';
 
 export type Friend = {
   id: string;
@@ -29,7 +30,7 @@ type FriendsListProps = {
 export const FriendsList: React.FC<FriendsListProps> = ({ onInvite, selectedFriend, setSelectedFriend }) => {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
-  
+  const router = useRouter();
   const [room, setRoom] = useState<string>('');
 
   useEffect(() => {
@@ -43,6 +44,9 @@ export const FriendsList: React.FC<FriendsListProps> = ({ onInvite, selectedFrie
 
     getReceivedRequestsGQL(localStorage.getItem('user_id'))
     .then((friendRequests) => {
+      if (friendRequests === null) {
+        return;
+      }
       const pending = friendRequests.filter((req: { request_status: string; }) => req.request_status === "pending");
       setFriendRequests(pending);
     })
@@ -62,6 +66,24 @@ export const FriendsList: React.FC<FriendsListProps> = ({ onInvite, selectedFrie
   const handleAcceptRequest = async (friendRequest: FriendRequest) => {
     const data = await updateRequestStatusGQL(friendRequest.id, "accepted");
     console.log(data);
+    getAllFriendsGQL(localStorage.getItem('user_id'))
+      .then((friends) => {
+        setFriends(friends);
+      })
+      .catch((error) => {
+        console.error('Get all friends error:', error);
+      });
+    getReceivedRequestsGQL(localStorage.getItem('user_id'))
+      .then((friendRequests) => {
+        if (friendRequests === null) {
+          return;
+        }
+        const pending = friendRequests.filter((req: { request_status: string; }) => req.request_status === "pending");
+        setFriendRequests(pending);
+      })
+      .catch((error) => {
+        console.error('Get received requests error:', error);
+      });
   };
 
   const handleInvite = () => {
