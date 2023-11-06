@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { fetchNotifications, fetchNotificationsGQL, logoutUserGQL } from '../utils/auth';
+import { fetchNotificationsGQL, logoutUserGQL } from '../utils/auth';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FiBell, FiX } from 'react-icons/fi';
