@@ -338,6 +338,9 @@ export const updateRequestStatusGQL = async (requestId: any, status: any) => {
 export const isFriend = async (userId: any, friendId: any) => {
     try{
         const allFriends = await getAllFriendsGQL(userId);
+        if (allFriends === null) {
+          return false;
+        }
         return allFriends.includes(friendId);
     } catch (error) {
         console.error('Check if friend error:', error);

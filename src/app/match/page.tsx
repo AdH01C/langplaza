@@ -73,7 +73,7 @@ export default function Match() {
 
 
   // PLEASE UPDATE HERE
-  const [otherUserID, setOtherUserID] = useState(6);
+  const [otherUserID, setOtherUserID] = useState(0);
   const [videoSocket, setVideoSocket] = useState<Socket>();
 
   // Socket.IO implementation - Client
@@ -154,11 +154,28 @@ export default function Match() {
     };
     let peerConnection = new RTCPeerConnection(pc_config);
 
+    // newSocket.on("all_users", (allUsers: Array<{ id: string; user: string }>) => {
+    //   console.log("ALLLLLLLLLLLLLLLLLLL", allUsers);
+    //   let len = allUsers.length;
+    //   if (len > 0) {
+    //     // PLEASE SET OTHER USER ID
+    //     createOffer(newSocket, peerConnection);
+    //   }
+    // });
+
     newSocket.on("all_users", (allUsers: Array<{ id: string; user: string }>) => {
       let len = allUsers.length;
       if (len > 0) {
-        // PLEASE SET OTHER USER ID
+        newSocket.emit('joined', { allUsers })
         createOffer(newSocket, peerConnection);
+      }
+    });
+
+    newSocket.on("other-join", (allUsers: Array<{ id: string; user: string }>) => {
+      if (allUsers.length > 0) {
+        //set state user
+        const otherUserId = allUsers[0].user;
+        setOtherUserID(Number(otherUserId));
       }
     });
 
@@ -326,6 +343,7 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
   }
 
   const handleAddFriend = () => {
+    console.log("Add friend ID: ", otherUserID);
     setIsModalOpen(true);
   }
   
@@ -408,7 +426,7 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
 
                   <div className="flex justify-center gap-4 mt-4">
                   {/* Leave and add friend */}
-                  {chatStarted ? (
+                  {chatStarted && otherUserID !== 0 ? (
                     isCurrentlyFriend ? (
                       <></> // Don't render any button when isCurrentlyFriend is true
                     ) : (
