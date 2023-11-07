@@ -440,3 +440,71 @@ export const createPrivateRoomGQL = async (friendId: any) => {
     throw error;
   }
 }
+
+export const addMessageGQL = async (sender: any, receiver: any, content: any) => {
+  try {
+    const ADD_MESSAGE_MUTATION = `{
+        addMessage(sender: "${sender}", receiver: ${receiver}, content: ${content}) {
+          sender
+          receiver
+          content
+          date_time
+        }
+      }
+    `;
+
+    const graphqlQuery = {
+      query: ADD_MESSAGE_MUTATION,
+    };
+
+    const response = await axios.post(graphqlUrl, {
+      query: graphqlQuery.query
+    }, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (response.status >= 200 && response.status < 300) {
+      console.log(response.data.data.addMessage);
+      return response.data.data.addMessage;
+    } else {
+      throw new Error(`Received status code ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Add message error:', error);
+    throw error;
+  }
+}
+
+export const getMessagesByUsersGQL = async (user1: any, user2: any) => {
+  try {
+    const GET_MESSAGES_MUTATION = `{
+      getMessagesByUsers(user1: "${user1}", user2: ${user2}) {
+          sender
+          receiver
+          content
+          date_time
+        }
+      }
+    `;
+
+    const graphqlQuery = {
+      query: GET_MESSAGES_MUTATION,
+    };
+
+    const response = await axios.post(graphqlUrl, {
+      query: graphqlQuery.query
+    }, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (response.status >= 200 && response.status < 300) {
+      console.log(response.data.data.getMessagesByUsers);
+      return response.data.data.getMessagesByUsers;
+    } else {
+      throw new Error(`Received status code ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Add message error:', error);
+    throw error;
+  }
+}
