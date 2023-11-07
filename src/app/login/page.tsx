@@ -35,6 +35,9 @@ export default function Login() {
       router.push('/match');
       
     } catch (error : any) {
+      if (!error) {
+        return;
+      }
       setError(error.response.data.message);
       setHasFailedLogin(true);
     }
