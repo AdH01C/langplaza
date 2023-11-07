@@ -45,18 +45,25 @@ export default function Friends() {
       return;
     }
     const resp1 = await getMessagesByUsersGQL(localStorage.getItem("name"), '"' + selectedFriend?.name + '"');
+    console.log("conversation 1", resp1);
     const resp2 = await getMessagesByUsersGQL(selectedFriend?.name, '"' + localStorage.getItem("name") + '"');
-    const chatMessages = resp1.concat(resp2);
-    chatMessages.sort(function(a: any,b: any){
-      // Turn your strings into dates, and then subtract them
-      // to get a value that is either negative, positive, or zero.
-      return new Date(a.date_time).valueOf() - new Date(b.date_time).valueOf();
-    });
-    populateChat(chatMessages, selectedFriend)
-    const timeout = setTimeout(() => {
-      initializeChat(selectedFriend);
-    }, 20000)
-    setTimeOut(timeout)
+    console.log("conversation 2", resp2);
+    try {
+      const chatMessages = resp1.concat(resp2);
+      chatMessages.sort(function(a: any,b: any){
+        // Turn your strings into dates, and then subtract them
+        // to get a value that is either negative, positive, or zero.
+        return new Date(a.date_time).valueOf() - new Date(b.date_time).valueOf();
+      });
+      populateChat(chatMessages, selectedFriend)
+      const timeout = setTimeout(() => {
+        initializeChat(selectedFriend);
+      }, 20000)
+      setTimeOut(timeout)
+    } catch (error) {
+      // console.log(error);
+    }
+    
   };
 
   const handleInvite = async (selectedFriend: Friend | null, room: string) => {
