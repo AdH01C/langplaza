@@ -31,7 +31,7 @@ export default function Room({ params }: { params: { roomId: string } }) {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<string[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState('');
-  const [chatSocket, setChatSocket] = useState<object | null>(null);
+  const [chatSocket, setChatSocket] = useState<Socket>();
 
   const [otherUserID, setOtherUserID] = useState();
   const [videoSocket, setVideoSocket] = useState<Socket>();
@@ -41,7 +41,7 @@ export default function Room({ params }: { params: { roomId: string } }) {
   const initializeChat = async (roomId: string) => {
     try {
       const socket = io(process.env.NEXT_PUBLIC_CHAT_URL as string);
-      
+      setChatSocket(socket);
       socket.on("connect", () => {
         setMyChatSocketId(socket.id); // Store the user's socket ID
         setMessages(messages => [...messages, "You connected with id: " + roomId]);
@@ -118,6 +118,7 @@ export default function Room({ params }: { params: { roomId: string } }) {
 
   const initializeVideoConnections = async (roomId: number) => {
     const newSocket = io(videoURL);
+    setVideoSocket(newSocket);
     const pc_config = {
       iceServers: [
         {
@@ -269,10 +270,19 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
 
   const leaveChat = () => {
     stopWebcam();
+    if (chatSocket) {
+      chatSocket.disconnect();
+    }
+    if (videoSocket) {
+      videoSocket.disconnect();
+    }
+    setChatSocket(undefined);
+    setVideoSocket(undefined);
     setChatStarted(0);
     setMessages([]);
     setMessage('');
-  };
+    window.location.assign('/friends');
+  }
 
   return (
     <div className="flex flex-col w-screen min-h-screen bg-white overflow-hidden">
@@ -302,7 +312,11 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
                     </div>
                     <span className="text-black">You</span>
                   </div>
-
+                  <div className="flex justify-center gap-4 mt-4">
+                    <button onClick={() => leaveChat()} className="px-4 py-2 mb-4 text-white bg-red-600 rounded-md hover:bg-red-800">
+                      Leave Chat
+                    </button>
+                  </div>
                 </div>
               </div>
     
