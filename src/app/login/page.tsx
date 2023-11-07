@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import Header from '../components/Header';
 import FadeInFromLeft from '../components/FadeInFromLeft';
-import { loginUserGQL } from '../utils/auth';
+import { addLanguageGQL, loginUserGQL } from '../utils/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -31,7 +31,7 @@ export default function Login() {
       console.log('Logging in with user.email:', user.email);
       console.log('Logging in with user.password', user.password);
       await loginUserGQL(user.email, user.password);
-
+      await addLanguageGQL();
       router.push('/match');
       
     } catch (error : any) {

@@ -3,11 +3,12 @@
 import { FormEvent, useEffect, useState } from 'react';
 import Header from '../components/Header';
 import FadeInFromLeft from '../components/FadeInFromLeft';
-import { signUpUserGQL } from '../utils/auth'; // Adjust the import path as needed
+import { addLanguageGQL, signUpUserGQL } from '../utils/auth'; // Adjust the import path as needed
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function SignUp() {
+  const languages = ['English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese', 'Russian', 'Italian']
   const [hasFailedSignUp, setHasFailedSignUp] = useState(false);
   const [error, setError] = useState(null);
 
@@ -124,6 +125,24 @@ export default function SignUp() {
                   required
                   className="px-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="language" className="block text-sm font-medium leading-6 text-gray-900">
+                Preferred Language
+              </label>
+              <div className="mt-2">
+                <select
+                  id="language"
+                  name="language"
+                  required
+                  className="px-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                >
+                  {languages.map((language) => (
+                    <option key={language} value={language}>{language}</option>
+                  ))}
+                </select>
               </div>
             </div>
 

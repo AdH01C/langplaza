@@ -301,3 +301,37 @@ export const fetchNotificationsGQL = async () => {
     throw error;
   }
 }
+
+export const addLanguageGQL = async () => {
+  try {
+    const ADD_LANGUAGE_MUTATION = `{
+        addLanguages(
+          token: "${localStorage.getItem('token')}", 
+          id: ${localStorage.getItem('user_id')}, 
+          languageList:{Spanish: True, English: True, French: True, German: True, Chinese: True, Japanese: True, Russian: True, Italian: True}
+        )
+      }
+    `;
+
+    const graphqlQuery = {
+      query: ADD_LANGUAGE_MUTATION,
+    };
+
+    const response = await axios.post(graphqlUrl, {
+      query: graphqlQuery.query
+    }, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (response.status >= 200 && response.status < 300) {
+      const { addLanguage } = response.data.data;
+      console.log('Add language response:', addLanguage);
+      return addLanguage;
+    } else {
+      throw new Error(`Received status code ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Add language error:', error);
+    throw error;
+  }
+}
