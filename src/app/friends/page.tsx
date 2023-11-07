@@ -1,17 +1,19 @@
 "use client"
 
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Header from '../components/Header';
 import { Friend, FriendsList } from '../components/FriendsList';
-import { useRouter } from 'next/navigation';
 import LoadingSpinner from '../components/Loading';
-import axios from 'axios';
 import { createPrivateRoomGQL, addMessageGQL, getMessagesByUsersGQL } from '../utils/friends';
+
+const host_ip = process.env.NEXT_PUBLIC_HOST_URL as string;
 
 export default function Friends() {
   const [loginToken, setLoginToken] = useState<string | null>(null);    
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
+  const [timeout, setTimeOut] = useState<NodeJS.Timeout | undefined>();
+  const chatContainerRef = useRef<null | HTMLDivElement>(null);
+
 
   useEffect(() => {
     setLoginToken(
@@ -31,6 +33,7 @@ export default function Friends() {
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
 
   useEffect(() => {
+    clearTimeout(timeout)
     if (selectedFriend == null) {
       return;
     }
@@ -38,20 +41,45 @@ export default function Friends() {
   }, [selectedFriend]);
 
   const initializeChat = async (selectedFriend: Friend) => {
-    const resp1 = await getMessagesByUsersGQL(localStorage.getItem("name"), selectedFriend?.name);
-    const resp2 = await getMessagesByUsersGQL(selectedFriend?.name, localStorage.getItem("name"),);
-    console.log(resp1);
-    console.log(resp2);
+    if (selectedFriend == null) {
+      return;
+    }
+    const resp1 = await getMessagesByUsersGQL(localStorage.getItem("name"), '"' + selectedFriend?.name + '"');
+    const resp2 = await getMessagesByUsersGQL(selectedFriend?.name, '"' + localStorage.getItem("name") + '"');
+    const chatMessages = resp1.concat(resp2);
+    chatMessages.sort(function(a: any,b: any){
+      // Turn your strings into dates, and then subtract them
+      // to get a value that is either negative, positive, or zero.
+      return new Date(a.date_time).valueOf() - new Date(b.date_time).valueOf();
+    });
+    populateChat(chatMessages, selectedFriend)
+    const timeout = setTimeout(() => {
+      initializeChat(selectedFriend);
+    }, 20000)
+    setTimeOut(timeout)
   };
 
   const handleInvite = async (selectedFriend: Friend | null, room: string) => {
+    if (selectedFriend == null) {
+      return;
+    }
     // Handle the invitation here
     console.log('selectedFriend', selectedFriend?.id);
     const resp = await createPrivateRoomGQL(selectedFriend?.id);
 
     // Send the link to the user
+    const friendMessages = messages[selectedFriend.id] || [];
+    const messageWithLink = host_ip + `/room/${resp.id}`;
+    setMessages({
+      ...messages,
+      [selectedFriend.id]: [...friendMessages, "You: " + messageWithLink],
+    });
+    await addMessageGQL(localStorage.getItem("name"), '"' + selectedFriend.name + '"', '"' + messageWithLink + '"');
     
-    router.push(`/room/${resp.id}`);
+    // Scroll to the bottom of the chat container
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
   };
 
   const [message, setMessage] = useState('');
@@ -64,11 +92,46 @@ export default function Friends() {
         ...messages,
         [selectedFriend.id]: [...friendMessages, "You: " + message],
       });
-      await addMessageGQL(localStorage.getItem("user_id"), selectedFriend.id, message);
+      await addMessageGQL(localStorage.getItem("name"), '"' + selectedFriend.name + '"', '"' + message + '"');
       setMessage('');
-      // You can add code to send the message to the server or another user here
+
+      // Scroll to the bottom of the chat container
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      }
     }
   };
+
+  const populateChat = async(chatMessages: Array<any>, selectedFriend: Friend) => {
+    setMessages({});
+    for (const message of chatMessages) {
+      if (message.sender === localStorage.getItem("name")) {
+        setMessages((prevMessages) => {
+          const updatedMessages = {
+            ...prevMessages,
+            [selectedFriend.id]: [
+              ...(prevMessages[selectedFriend.id] || []), // Preserve existing messages for the friend
+              "You: " + message.content,
+            ],
+          };
+        
+          return updatedMessages;
+        });
+      } else {
+        setMessages((prevMessages) => {
+          const updatedMessages = {
+            ...prevMessages,
+            [selectedFriend.id]: [
+              ...(prevMessages[selectedFriend.id] || []), // Preserve existing messages for the friend
+              "Friend: " + message.content,
+            ],
+          };
+        
+          return updatedMessages;
+        });
+      }
+    }
+  }
 
   const handleEnterPress = (e: { key: string; }) => {
     if (e.key === 'Enter') {
@@ -101,7 +164,7 @@ export default function Friends() {
               <div className="flex flex-col align-middle h-full w-full p-42">
                 {selectedFriend ?
                  (<a className='text-3xl'>{selectedFriend.name} </a>):(<a className='text-3xl'>Select a friend</a>)}
-                  <div className="flex-grow overflow-y-auto mt-2 mb-4 border rounded-md">
+                  <div className="flex-grow overflow-y-auto mt-2 mb-4 border rounded-md" ref={chatContainerRef}>
                     {(messages[selectedFriend?.id ?? ''] || []).map((msg: string, index: number) => (
                       <div key={index} className="p-2 border-b text-black">
                         {msg}
