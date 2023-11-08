@@ -309,16 +309,15 @@ const createAnswer = async (sdp: RTCSessionDescription, videoSocket: Socket, pee
         initializeChat(resp.id);
         // Add the other user id to the state
 
-
-        if (await isFriend(userId, otherUserID)) {
-          setIsCurrentlyFriend(true);
-        }
-
         if (await hasSentRequest(userId, otherUserID)) {
           setHasAddedFriend(true);
         }
         await initializeVideoConnections(resp.id);
         setOtherUserID(resp.other_user_id);
+
+        if (await isFriend(userId, otherUserID)) {
+          setIsCurrentlyFriend(true);
+        }
       }
     } catch (error: any) {
       console.error("Error starting chat:", error);

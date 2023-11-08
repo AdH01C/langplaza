@@ -5,10 +5,6 @@ import { useState } from 'react';
 
 
 let token;
-
-const authUrl = process.env.NEXT_PUBLIC_AUTH_URL as string;
-const roomsUrl = process.env.NEXT_PUBLIC_ROOMS_URL as string;
-const notificationsUrl = process.env.NEXT_PUBLIC_NOTIFICATIONS_URL as string;
 const graphqlUrl = process.env.NEXT_PUBLIC_GRAPHQL_URL as string;
 
 const setTokenOnClient = () => {

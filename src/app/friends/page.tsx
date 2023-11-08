@@ -58,7 +58,7 @@ export default function Friends() {
       populateChat(chatMessages, selectedFriend)
       const timeout = setTimeout(() => {
         initializeChat(selectedFriend);
-      }, 20000)
+      }, 1000)
       setTimeOut(timeout)
     } catch (error) {
       // console.log(error);
@@ -87,6 +87,8 @@ export default function Friends() {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
+
+    window.location.assign('/room/' + resp.id);
   };
 
   const [message, setMessage] = useState('');

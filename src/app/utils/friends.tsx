@@ -4,8 +4,7 @@ import axios, { AxiosHeaders } from 'axios';
 
 let token: string | number | boolean | AxiosHeaders | string[] | null | undefined;
 
-const authUrl = process.env.NEXT_PUBLIC_AUTH_URL;
-const roomsUrl = process.env.NEXT_PUBLIC_ROOMS_URL;
+
 const graphqlUrl = process.env.NEXT_PUBLIC_GRAPHQL_URL as string;
 
 

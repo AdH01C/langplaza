@@ -33,6 +33,7 @@ export default function Header() {
         data.then((res) => {
             // setNotifications(res.data.data);
             if (res && res[0]) {
+                console.log(res);
                 const notification = res[0].data;
                 setNotifications([...notifications, notification]);
             }
